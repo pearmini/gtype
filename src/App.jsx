@@ -14,7 +14,7 @@ function pointsByConstrains({constrains}, {debug = false, random} = {}) {
   const placed = new Map();
   const toPlace = Array.from(constrainsById.keys());
   let next;
-  let maxIter = 10;
+  let maxIter = 1000;
   let iter = 0;
 
   while ((next = toPlace.shift()) && iter < maxIter) {
@@ -24,15 +24,16 @@ function pointsByConstrains({constrains}, {debug = false, random} = {}) {
     let x1 = Infinity;
     let y0 = -Infinity;
     let y1 = Infinity;
+    const offset = 0.2;
     for (const [s, v, left] of constrains) {
       if (placed.has(s)) {
         const [px, py] = placed.get(s);
         if (v === "v") {
-          if (left) y1 = Math.min(y1, py);
-          else y0 = Math.max(y0, py);
+          if (left) y1 = Math.min(y1, py - offset);
+          else y0 = Math.max(y0, py + offset);
         } else {
-          if (left) x1 = Math.min(x1, px);
-          else x0 = Math.max(x0, px);
+          if (left) x1 = Math.min(x1, px - offset);
+          else x0 = Math.max(x0, px + offset);
         }
       }
     }
@@ -54,7 +55,7 @@ function draw(node, {debug = false, random} = {}) {
   const A = {
     nodes: [0, 1, 2, 3, 4],
     links: ["0,1", "1,2", "0,4", "3,4", "4,1"],
-    constrains: ["0v1", "0v4", "1v2", "4v3", "4>1", "3>2"],
+    constrains: ["0v1", "0v4", "1v2", "4v3", "4>1", "3>2", "4>2", "1>2", "3>4", "4v2", "0>1", "4>0"],
   };
   const pointById = pointsByConstrains(A, {debug, random});
   const points = Array.from(pointById.values());
@@ -77,6 +78,8 @@ function draw(node, {debug = false, random} = {}) {
 
   const lines = A.links.map((link) => link.split(",").map((id) => pointById.get(id)));
 
+  const entries = Array.from(pointById.entries());
+
   svg
     .selectAll("line")
     .data(lines)
@@ -91,26 +94,22 @@ function draw(node, {debug = false, random} = {}) {
   svg
     .selectAll("circle")
     .data(points)
-    .enter()
-    .append("circle")
+    .join("circle")
     .attr("cx", (d) => scaleX(d[0]))
     .attr("cy", (d) => scaleY(d[1]))
-    .attr("r", 10);
-
-  const entries = Array.from(pointById.entries());
+    .attr("r", 8);
 
   svg
     .selectAll("text")
     .data(entries)
-    .enter()
-    .append("text")
+    .join("text")
     .text((d) => d[0])
     .attr("x", (d) => scaleX(d[1][0]))
     .attr("y", (d) => scaleY(d[1][1]))
     .attr("text-anchor", "middle")
     .attr("dominant-baseline", "middle")
     .attr("fill", "white")
-    .attr("font-size", 16);
+    .attr("font-size", 12);
 }
 
 function App() {
@@ -123,16 +122,18 @@ function App() {
     }
     if (nodeRef.current) {
       nodeRef.current.innerHTML = "";
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 9; i++) {
         const node = document.createElement("div");
         nodeRef.current.appendChild(node);
         draw(node, {debug: i === 0, random});
       }
     }
   }, []);
+
   return (
     <>
-      <h1>Graphical Typography</h1>
+      <h1 className="ml-4 mt-4">Graph Typeface</h1>
+      <h1 className="ml-4">A graph representation for typeface</h1>
       <div ref={nodeRef} className="flex flex-wrap"></div>
     </>
   );
