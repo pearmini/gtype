@@ -3,47 +3,51 @@ import * as d3 from "d3";
 import "./App.css";
 
 function pointsByConstrains({constrains}, {debug = false, random} = {}) {
-  const pointById = new Map();
-  let [next, ...rest] = constrains;
-  const set = new Set(rest);
-  let maxIter = 100;
+  const constrainsById = new Map();
+
+  for (const c of constrains) {
+    const [s, v, t] = c;
+    constrainsById.set(s, (constrainsById.get(s) || []).concat([[t, v, 1]]));
+    constrainsById.set(t, (constrainsById.get(t) || []).concat([[s, v, 0]]));
+  }
+
+  const placed = new Map();
+  const toPlace = Array.from(constrainsById.keys());
+  let next;
+  let maxIter = 10;
   let iter = 0;
-  while (next && iter < maxIter) {
+
+  while ((next = toPlace.shift()) && iter < maxIter) {
     iter++;
-    const [s, v, t] = next;
-    let ps;
-    if (!(ps = pointById.get(s))) pointById.set(s, (ps = [0, 0]));
-    let pt = pointById.get(t);
-    if (!pt) {
-      if (v === "v") {
-        const [psx, psy] = ps;
-        const ptx = psx + random(-0.5, 0.5);
-        const pty = psy + random(0.1, 0.9);
-        pt = [ptx, pty];
-      } else {
-        const [psx, psy] = ps;
-        const pty = psy + random(-0.5, 0.5);
-        const ptx = psx + random(0.1, 0.9);
-        pt = [ptx, pty];
-      }
-    }
-    if (debug) {
-      console.log(s, v, t, ps, pt);
-    }
-    pointById.set(t, pt);
-    next = null;
-    find: for (const rc of set) {
-      const keys = pointById.keys();
-      for (const key of keys) {
-        if (rc.includes(key)) {
-          next = rc;
-          set.delete(rc);
-          break find;
+    const constrains = constrainsById.get(next);
+    let x0 = -Infinity;
+    let x1 = Infinity;
+    let y0 = -Infinity;
+    let y1 = Infinity;
+    for (const [s, v, left] of constrains) {
+      if (placed.has(s)) {
+        const [px, py] = placed.get(s);
+        if (v === "v") {
+          if (left) y1 = Math.min(y1, py);
+          else y0 = Math.max(y0, py);
+        } else {
+          if (left) x1 = Math.min(x1, px);
+          else x0 = Math.max(x0, px);
         }
       }
     }
+    if (x0 === -Infinity && x1 === Infinity) [x0, x1] = [0, 1];
+    if (y0 === -Infinity && y1 === Infinity) [y0, y1] = [0, 1];
+    if (x0 === -Infinity && x1 !== Infinity) x0 = x1 - 1;
+    if (x1 === Infinity && x0 !== -Infinity) x1 = x0 + 1;
+    if (y0 === -Infinity && y1 !== Infinity) y0 = y1 - 1;
+    if (y1 === Infinity && y0 !== -Infinity) y1 = y0 + 1;
+    const x = random(x0, x1);
+    const y = random(y0, y1);
+    placed.set(next, [x, y]);
   }
-  return pointById;
+
+  return placed;
 }
 
 function draw(node, {debug = false, random} = {}) {
