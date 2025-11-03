@@ -180,7 +180,7 @@ function App() {
       for (let j = 0; j < 14; j++) {
         const node = document.createElement("div");
         parent.appendChild(node);
-        draw(node, {random, spec: item, debug: item.char === "B" && j === 6});
+        draw(node, {random, spec: item});
       }
     }
   }, []);
