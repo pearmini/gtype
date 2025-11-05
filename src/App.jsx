@@ -1,4 +1,4 @@
-import {useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import * as d3 from "d3";
 import {data as _data} from "./data.js";
 import "./App.css";
@@ -174,11 +174,13 @@ function draw(node, {debug = false, random, spec} = {}) {
 }
 
 function App() {
-  const nodeRefs = data.map(() => useRef(null));
+  const [selectedChar, setSelectedChar] = useState("A");
+  const filteredData = data.filter((item) => item.char === selectedChar);
+  const nodeRefs = filteredData.map(() => useRef(null));
 
   useEffect(() => {
-    for (let i = 0; i < data.length; i++) {
-      const item = data[i];
+    for (let i = 0; i < filteredData.length; i++) {
+      const item = filteredData[i];
       const r = d3.randomLcg(i * 100);
       function random(min, max) {
         return min + (max - min) * r();
@@ -191,13 +193,20 @@ function App() {
         draw(node, {random, spec: item});
       }
     }
-  }, []);
+  }, [selectedChar]);
 
   return (
     <>
       <h1>Graph Typeface</h1>
       <h1>A graph representation for typeface</h1>
-      {data.map((item, index) => (
+      <div>
+        <label htmlFor="char-select">Select Character:</label>
+        <select id="char-select" value={selectedChar} onChange={(e) => setSelectedChar(e.target.value)}>
+          <option value="A">A</option>
+          <option value="B">B</option>
+        </select>
+      </div>
+      {filteredData.map((item, index) => (
         <div key={index}>
           <h2>{item.char}</h2>
           <div ref={nodeRefs[index]} className="flex flex-wrap"></div>
