@@ -275,16 +275,39 @@ function App() {
               Run
             </button>
           </div>
-          <div className="flex-1 overflow-auto">
-            <CodeMirror
-              value={code}
-              height="100%"
-              theme="dark"
-              extensions={[javascript({json: true})]}
-              onChange={(value) => setCode(value)}
-              className="text-sm"
-            />
-          </div>
+           <div className="flex-1 overflow-auto p-4 bg-[#161616]">
+             <CodeMirror
+               value={code}
+               height="100%"
+               theme="dark"
+               extensions={[javascript({json: true})]}
+               onChange={(value) => setCode(value)}
+               className="text-sm"
+               basicSetup={{
+                 lineNumbers: true,
+                 highlightActiveLineGutter: true,
+                 highlightSpecialChars: true,
+                 foldGutter: true,
+                 drawSelection: true,
+                 dropCursor: true,
+                 allowMultipleSelections: true,
+                 indentOnInput: true,
+                 bracketMatching: true,
+                 closeBrackets: true,
+                 autocompletion: true,
+                 rectangularSelection: true,
+                 crosshairCursor: true,
+                 highlightActiveLine: true,
+                 highlightSelectionMatches: true,
+                 closeBracketsKeymap: true,
+                 searchKeymap: true,
+                 foldKeymap: true,
+                 completionKeymap: true,
+                 lintKeymap: true,
+               }}
+               style={{ backgroundColor: "#161616" }}
+             />
+           </div>
         </div>
         <div className="w-3/5 overflow-auto p-5">
           <h2 className="m-0 mb-5 text-lg font-semibold">Output</h2>
