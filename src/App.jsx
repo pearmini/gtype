@@ -333,6 +333,7 @@ function App() {
   const [code, setCode] = useState(initialCode);
   const [currentSpec, setCurrentSpec] = useState(initialItem);
   const [error, setError] = useState(null);
+  const [codeChanged, setCodeChanged] = useState(false);
   const nodeRef = useRef(null);
 
   const handleRun = () => {
@@ -344,6 +345,7 @@ function App() {
       };
       setCurrentSpec(processedSpec);
       setError(null);
+      setCodeChanged(false);
     } catch (error) {
       console.error("Invalid JSON:", error);
       setError(error.message);
@@ -384,6 +386,7 @@ function App() {
       setCode(newCode);
       setCurrentSpec(data.find((d) => d.char === selectedChar));
       setError(null);
+      setCodeChanged(false);
     }
   }, [selectedChar]);
 
@@ -395,7 +398,11 @@ function App() {
       <div className="p-4 border-b border-dashed border-[#333] flex justify-start items-center gap-4 bg-[#0f0f0f]">
         <button
           onClick={handleRun}
-          className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
+          className={`flex items-center gap-1.5 px-4 py-2 border rounded cursor-pointer text-sm font-medium transition-colors ${
+            codeChanged
+              ? "bg-blue-500 text-white border-blue-500 hover:bg-blue-600 hover:border-blue-600"
+              : "bg-transparent text-[#e5e5e5] border-[#333] hover:border-[#555]"
+          }`}
         >
           <Play size={16} />
           Run
@@ -507,7 +514,10 @@ function App() {
               height="100%"
               theme="dark"
               extensions={[javascript({json: true})]}
-              onChange={(value) => setCode(value)}
+              onChange={(value) => {
+                setCode(value);
+                setCodeChanged(true);
+              }}
               className="text-sm"
               basicSetup={{
                 lineNumbers: true,
