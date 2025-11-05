@@ -227,7 +227,7 @@ function App() {
     }
     const parent = nodeRef.current;
     if (parent) parent.innerHTML = "";
-    for (let j = 0; j < 16; j++) {
+    for (let j = 0; j < 20; j++) {
       const node = document.createElement("div");
       parent.appendChild(node);
       draw(node, {random, spec: currentSpec});
@@ -328,7 +328,7 @@ function App() {
             </div>
           ) : currentSpec ? (
             <div>
-              <div ref={nodeRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+              <div ref={nodeRef} className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4`}></div>
             </div>
           ) : null}
         </div>
