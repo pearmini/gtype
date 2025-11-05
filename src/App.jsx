@@ -119,14 +119,14 @@ function pointsByConstrains(spec, {debug = false, random} = {}) {
   return placed;
 }
 
-function draw(node, {debug = false, random, spec} = {}) {
+function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, showDebug = false} = {}) {
   const pointById = pointsByConstrains(spec, {debug, random});
   const points = Array.from(pointById.values());
   const X = points.map(([x, y]) => x);
   const Y = points.map(([x, y]) => y);
   const width = 200;
   const height = 200;
-  const padding = 20;
+  const padding = 30;
   const svg = d3
     .select(node)
     .append("svg")
@@ -146,57 +146,63 @@ function draw(node, {debug = false, random, spec} = {}) {
     .domain(d3.extent(Y))
     .range([padding, height - padding]);
 
-  const lines = spec.links.map((link) => link.split(",").map((id) => pointById.get(id)));
+  // const lines = spec.links.map((link) => link.split(",").map((id) => pointById.get(id)));
+  const paths = spec.paths.map((path) => path.split(",").map((id) => pointById.get(id)));
+  const line = d3
+    .line()
+    .curve(curveType)
+    .x((d) => scaleX(d[0]))
+    .y((d) => scaleY(d[1]));
 
   const entries = Array.from(pointById.entries());
 
-  svg
-    .selectAll("line")
-    .data(lines)
-    .join("line")
-    .attr("x1", (d) => scaleX(d[0][0]))
-    .attr("y1", (d) => scaleY(d[0][1]))
-    .attr("x2", (d) => scaleX(d[1][0]))
-    .attr("y2", (d) => scaleY(d[1][1]))
-    .attr("stroke", "#e5e5e5")
-    .attr("stroke-width", 1.5);
+  svg.selectAll("path").data(paths).join("path").attr("d", line).attr("stroke", "#e5e5e5").attr("stroke-width", 1.5);
 
-  svg
-    .selectAll("circle")
-    .data(points)
-    .join("circle")
-    .attr("cx", (d) => scaleX(d[0]))
-    .attr("cy", (d) => scaleY(d[1]))
-    .attr("r", 8)
-    .attr("fill", "#e5e5e5");
+  if (showDebug) {
+    svg
+      .selectAll("circle")
+      .data(points)
+      .join("circle")
+      .attr("cx", (d) => scaleX(d[0]))
+      .attr("cy", (d) => scaleY(d[1]))
+      .attr("r", 8)
+      .attr("fill", "#e5e5e5");
 
-  svg
-    .selectAll("text")
-    .data(entries)
-    .join("text")
-    .text((d) => d[0])
-    .attr("x", (d) => scaleX(d[1][0]))
-    .attr("y", (d) => scaleY(d[1][1]))
-    .attr("text-anchor", "middle")
-    .attr("dominant-baseline", "middle")
-    .attr("fill", "#000")
-    .attr("font-size", 12);
+    svg
+      .selectAll("text")
+      .data(entries)
+      .join("text")
+      .text((d) => d[0])
+      .attr("x", (d) => scaleX(d[1][0]))
+      .attr("y", (d) => scaleY(d[1][1]))
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .attr("fill", "#000")
+      .attr("font-size", 12);
+  }
 }
+
+const curveOptions = [
+  {name: "Linear", value: "curveLinear"},
+  {name: "Basis", value: "curveBasis"},
+  {name: "Bundle", value: "curveBundle"},
+  {name: "Cardinal", value: "curveCardinal"},
+  {name: "Catmull-Rom", value: "curveCatmullRom"},
+  {name: "Monotone X", value: "curveMonotoneX"},
+  {name: "Monotone Y", value: "curveMonotoneY"},
+  {name: "Natural", value: "curveNatural"},
+  {name: "Step", value: "curveStep"},
+  {name: "Step After", value: "curveStepAfter"},
+  {name: "Step Before", value: "curveStepBefore"},
+];
 
 function App() {
   const [selectedChar, setSelectedChar] = useState("A");
+  const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
+  const [showDebug, setShowDebug] = useState(false);
   const initialItem = data.find((d) => d.char === selectedChar);
 
-  const initialCode = JSON.stringify(
-    {
-      char: initialItem.char,
-      nodes: initialItem.nodes,
-      links: initialItem.links,
-      constrains: _data.find((d) => d.char === selectedChar)?.constrains || [],
-    },
-    null,
-    2
-  );
+  const initialCode = JSON.stringify(initialItem, null, 2);
 
   const [code, setCode] = useState(initialCode);
   const [currentSpec, setCurrentSpec] = useState(initialItem);
@@ -227,26 +233,18 @@ function App() {
     }
     const parent = nodeRef.current;
     if (parent) parent.innerHTML = "";
-    for (let j = 0; j < 16; j++) {
+    const curveType = d3[selectedCurve];
+    for (let j = 0; j < 20; j++) {
       const node = document.createElement("div");
       parent.appendChild(node);
-      draw(node, {random, spec: currentSpec});
+      draw(node, {random, spec: currentSpec, curveType, showDebug});
     }
-  }, [currentSpec]);
+  }, [currentSpec, selectedCurve, showDebug]);
 
   useEffect(() => {
     const item = _data.find((d) => d.char === selectedChar);
     if (item) {
-      const newCode = JSON.stringify(
-        {
-          char: item.char,
-          nodes: item.nodes,
-          links: item.links,
-          constrains: item.constrains,
-        },
-        null,
-        2
-      );
+      const newCode = JSON.stringify(item, null, 2);
       setCode(newCode);
       setCurrentSpec(data.find((d) => d.char === selectedChar));
       setError(null);
@@ -258,34 +256,63 @@ function App() {
       <header className="p-4 border-b border-[#333]">
         <h1 className="m-0 text-xl font-semibold">[WIP] GType: A Graph Representation for Typeface</h1>
       </header>
+      <div className="p-4 border-b border-dashed border-[#333] flex justify-start items-center gap-4 bg-[#0f0f0f]">
+        <button
+          onClick={handleRun}
+          className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
+        >
+          <Play size={16} />
+          Run
+        </button>
+        <div>
+          <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
+            Character:
+          </label>
+          <select
+            id="char-select"
+            value={selectedChar}
+            onChange={(e) => setSelectedChar(e.target.value)}
+            className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+          >
+            {data.map((d) => (
+              <option key={d.char} value={d.char}>
+                {d.char}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="curve-select" className="mr-2.5 text-[#e5e5e5]">
+            Curve:
+          </label>
+          <select
+            id="curve-select"
+            value={selectedCurve}
+            onChange={(e) => setSelectedCurve(e.target.value)}
+            className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+          >
+            {curveOptions.map((curve) => (
+              <option key={curve.value} value={curve.value}>
+                {curve.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="debug-checkbox"
+            checked={showDebug}
+            onChange={(e) => setShowDebug(e.target.checked)}
+            className="mr-2 cursor-pointer"
+          />
+          <label htmlFor="debug-checkbox" className="text-[#e5e5e5] cursor-pointer">
+            Debug
+          </label>
+        </div>
+      </div>
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-2/5 flex flex-col border-r border-[#333]">
-          <div className="p-4 border-b border-dashed border-[#333] flex justify-between items-center">
-            <div>
-              <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
-                Character:
-              </label>
-              <select
-                id="char-select"
-                value={selectedChar}
-                onChange={(e) => setSelectedChar(e.target.value)}
-                className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
-              >
-                {data.map((d) => (
-                  <option key={d.char} value={d.char}>
-                    {d.char}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={handleRun}
-              className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
-            >
-              <Play size={16} />
-              Run
-            </button>
-          </div>
+        <div className="w-1/3 flex flex-col border-r border-dashed border-[#333]">
           <div className="flex-1 overflow-auto p-4 bg-[#161616]">
             <CodeMirror
               value={code}
@@ -320,7 +347,7 @@ function App() {
             />
           </div>
         </div>
-        <div className="w-3/5 overflow-auto p-5">
+        <div className="w-2/3 overflow-auto p-5">
           {error ? (
             <div className="bg-red-900/20 border border-red-500 rounded p-4">
               <h2 className="text-red-400 font-semibold mb-2 text-lg">Error</h2>
@@ -328,7 +355,10 @@ function App() {
             </div>
           ) : currentSpec ? (
             <div>
-              <div ref={nodeRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+              <div
+                ref={nodeRef}
+                className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4`}
+              ></div>
             </div>
           ) : null}
         </div>
