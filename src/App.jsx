@@ -1,20 +1,13 @@
 import {useEffect, useRef, useState} from "react";
 import * as d3 from "d3";
-import {data as _data} from "./data.js";
+import {data} from "./data.js";
 import CodeMirror from "@uiw/react-codemirror";
 import {javascript} from "@codemirror/lang-javascript";
 import * as webgl from "./webgl.js";
 import {Play} from "lucide-react";
 import "./App.css";
 
-const data = _data.map((item) => {
-  return {
-    ...item,
-    constrains: inferConstrains(item.constrains),
-  };
-});
-
-function parseConstrain(c) {
+function parseConstraint(c) {
   const [s, v, t] = c;
   return [s, v, t];
 }
@@ -31,16 +24,16 @@ function traverse(node, fn) {
   }
 }
 
-function inferConstrains(constrains) {
-  const horizontal = constrains.filter((c) => c.includes(">"));
-  const vertical = constrains.filter((c) => c.includes("v"));
-  function infer(constrains, v) {
+function inferConstraints(constraints) {
+  const horizontal = constraints.filter((c) => c.includes(">"));
+  const vertical = constraints.filter((c) => c.includes("v"));
+  function infer(constraints, v) {
     const nodeById = new Map();
     const countById = new Map();
-    const set = new Set(constrains);
-    const raw = new Set(constrains);
+    const set = new Set(constraints);
+    const raw = new Set(constraints);
     for (const c of set) {
-      const [s, , t] = parseConstrain(c);
+      const [s, , t] = parseConstraint(c);
       if (!nodeById.has(s)) nodeById.set(s, new Node(s));
       if (!nodeById.has(t)) nodeById.set(t, new Node(t));
       nodeById.get(s).children.push(nodeById.get(t));
@@ -66,30 +59,30 @@ function inferConstrains(constrains) {
   return [...infer(horizontal, ">"), ...infer(vertical, "v")];
 }
 
-function pointsByConstrains(spec, {debug = false, random} = {}) {
-  const constrains = d3.sort(spec.constrains, (d) => parseConstrain(d)[0]);
-  const constrainsById = new Map();
+function pointsByConstraints(spec, {debug = false, random} = {}) {
+  const constraints = d3.sort(spec.constraints, (d) => parseConstraint(d)[0]);
+  const constraintsById = new Map();
 
-  for (const c of constrains) {
-    const [s, v, t] = parseConstrain(c);
-    constrainsById.set(s, (constrainsById.get(s) || []).concat([[t, v, 1]]));
-    constrainsById.set(t, (constrainsById.get(t) || []).concat([[s, v, 0]]));
+  for (const c of constraints) {
+    const [s, v, t] = parseConstraint(c);
+    constraintsById.set(s, (constraintsById.get(s) || []).concat([[t, v, 1]]));
+    constraintsById.set(t, (constraintsById.get(t) || []).concat([[s, v, 0]]));
   }
 
   const placed = new Map();
-  const toPlace = Array.from(constrainsById.keys());
+  const toPlace = Array.from(constraintsById.keys());
   let next;
   let maxIter = 1000;
   let iter = 0;
 
   while ((next = toPlace.shift()) && iter < maxIter) {
     iter++;
-    const constrains = constrainsById.get(next);
+    const constraints = constraintsById.get(next);
     let x0 = -Infinity;
     let x1 = Infinity;
     let y0 = -Infinity;
     let y1 = Infinity;
-    for (const [s, v, left] of constrains) {
+    for (const [s, v, left] of constraints) {
       if (placed.has(s)) {
         const [px, py] = placed.get(s);
         if (v === "v") {
@@ -113,7 +106,7 @@ function pointsByConstrains(spec, {debug = false, random} = {}) {
     const y = random(y0 + paddingY, y1 - paddingY);
     placed.set(next, [x, y]);
     if (debug) {
-      console.log(next, {x, y, x0, x1, y0, y1, constrains});
+      console.log(next, {x, y, x0, x1, y0, y1, constraints});
     }
   }
 
@@ -121,7 +114,7 @@ function pointsByConstrains(spec, {debug = false, random} = {}) {
 }
 
 function drawSVG(node, {debug = false, random, spec, curveType = d3.curveLinear, showDebug = false} = {}) {
-  const pointById = pointsByConstrains(spec, {debug, random});
+  const pointById = pointsByConstraints(spec, {debug, random});
   const points = Array.from(pointById.values());
   const X = points.map(([x, y]) => x);
   const Y = points.map(([x, y]) => y);
@@ -147,7 +140,7 @@ function drawSVG(node, {debug = false, random, spec, curveType = d3.curveLinear,
     .domain(d3.extent(Y))
     .range([padding, height - padding]);
 
-  const paths = spec.paths.map((path) => path.split(",").map((id) => pointById.get(id)));
+  const paths = spec.links.map((path) => path.split(",").map((id) => pointById.get(id)));
 
   const line = d3
     .line()
@@ -186,7 +179,7 @@ function drawSVG(node, {debug = false, random, spec, curveType = d3.curveLinear,
 function drawWebGL(node, {random, spec, count, animate = true} = {}) {
   const {contextGL, Matrix, M, Shader, drawMesh, V, setUniform} = webgl;
   const fonts = d3.range(count).map(() => {
-    const pointById = pointsByConstrains(spec, {random});
+    const pointById = pointsByConstraints(spec, {random});
     const points = Array.from(pointById.values());
     const X = points.map(([x, y]) => x);
     const Y = points.map(([x, y]) => y);
@@ -194,7 +187,7 @@ function drawWebGL(node, {random, spec, count, animate = true} = {}) {
     const scaleY = d3.scaleLinear(d3.extent(Y), [0, 1]);
     return {
       name: spec.char,
-      paths: spec.paths.map((path) =>
+      paths: spec.links.map((path) =>
         path.split(",").map((id) => {
           const [x, y] = pointById.get(id);
           return [scaleX(x), scaleY(y)];
@@ -304,6 +297,28 @@ function drawWebGL(node, {random, spec, count, animate = true} = {}) {
   return canvas.remove;
 }
 
+function preprocessSpec({nodes, links, constraints, ...rest}) {
+  const set = new Set(nodes);
+  const validConstraints = constraints.filter((constraint) => {
+    const [s, v, t] = parseConstraint(constraint);
+    return set.has(s) && set.has(t);
+  });
+  const validLinks = links
+    .map((link) =>
+      link
+        .split(",")
+        .filter((id) => set.has(id))
+        .join(",")
+    )
+    .filter((link) => link.length > 0);
+  return {
+    ...rest,
+    nodes,
+    links: validLinks,
+    constraints: inferConstraints(validConstraints),
+  };
+}
+
 const curveOptions = [
   {name: "Linear", value: "curveLinear"},
   {name: "Basis", value: "curveBasis"},
@@ -339,11 +354,7 @@ function App() {
   const handleRun = () => {
     try {
       const parsed = JSON.parse(code);
-      const processedSpec = {
-        ...parsed,
-        constrains: inferConstrains(parsed.constrains),
-      };
-      setCurrentSpec(processedSpec);
+      setCurrentSpec(parsed);
       setError(null);
       setCodeChanged(false);
     } catch (error) {
@@ -364,15 +375,16 @@ function App() {
     const curveType = d3[selectedCurve];
 
     const count = 20;
+    const processedSpec = preprocessSpec(currentSpec);
     let destroy;
 
     if (renderer === "WebGL") {
-      destroy = drawWebGL(parent, {random, spec: currentSpec, count, animate});
+      destroy = drawWebGL(parent, {random, spec: processedSpec, count, animate});
     } else if (renderer === "SVG") {
       for (let j = 0; j < 20; j++) {
         const node = document.createElement("div");
         parent.appendChild(node);
-        drawSVG(node, {random, spec: currentSpec, curveType, showDebug});
+        drawSVG(node, {random, spec: processedSpec, curveType, showDebug});
       }
     }
 
@@ -380,11 +392,11 @@ function App() {
   }, [currentSpec, selectedCurve, showDebug, renderer, seed, animate]);
 
   useEffect(() => {
-    const item = _data.find((d) => d.char === selectedChar);
+    const item = data.find((d) => d.char === selectedChar);
     if (item) {
       const newCode = JSON.stringify(item, null, 2);
       setCode(newCode);
-      setCurrentSpec(data.find((d) => d.char === selectedChar));
+      setCurrentSpec(item);
       setError(null);
       setCodeChanged(false);
     }
