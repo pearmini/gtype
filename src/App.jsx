@@ -256,11 +256,11 @@ function App() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <header className="p-4 border-b border-[#333]">
-        <h1 className="m-0 text-xl font-semibold">GType: A Graph Represetation for Typeface</h1>
+        <h1 className="m-0 text-xl font-semibold">GType: A Graph Representation for Typeface</h1>
       </header>
       <div className="flex flex-1 overflow-hidden">
         <div className="w-2/5 flex flex-col border-r border-[#333]">
-          <div className="p-4 border-b border-[#333] flex justify-between items-center">
+          <div className="p-4 border-b border-dashed border-[#333] flex justify-between items-center">
             <div>
               <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
                 Character:
