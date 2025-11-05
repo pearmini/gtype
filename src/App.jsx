@@ -127,7 +127,14 @@ function draw(node, {debug = false, random, spec} = {}) {
   const width = 200;
   const height = 200;
   const padding = 20;
-  const svg = d3.select(node).append("svg").attr("width", width).attr("height", height);
+  const svg = d3
+    .select(node)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .style("width", "100%")
+    .style("height", "100%");
 
   const scaleX = d3
     .scaleLinear()
@@ -217,7 +224,7 @@ function App() {
     }
     const parent = nodeRef.current;
     if (parent) parent.innerHTML = "";
-    for (let j = 0; j < 14; j++) {
+    for (let j = 0; j < 16; j++) {
       const node = document.createElement("div");
       parent.appendChild(node);
       draw(node, {random, spec: currentSpec});
@@ -275,46 +282,44 @@ function App() {
               Run
             </button>
           </div>
-           <div className="flex-1 overflow-auto p-4 bg-[#161616]">
-             <CodeMirror
-               value={code}
-               height="100%"
-               theme="dark"
-               extensions={[javascript({json: true})]}
-               onChange={(value) => setCode(value)}
-               className="text-sm"
-               basicSetup={{
-                 lineNumbers: true,
-                 highlightActiveLineGutter: true,
-                 highlightSpecialChars: true,
-                 foldGutter: true,
-                 drawSelection: true,
-                 dropCursor: true,
-                 allowMultipleSelections: true,
-                 indentOnInput: true,
-                 bracketMatching: true,
-                 closeBrackets: true,
-                 autocompletion: true,
-                 rectangularSelection: true,
-                 crosshairCursor: true,
-                 highlightActiveLine: true,
-                 highlightSelectionMatches: true,
-                 closeBracketsKeymap: true,
-                 searchKeymap: true,
-                 foldKeymap: true,
-                 completionKeymap: true,
-                 lintKeymap: true,
-               }}
-               style={{ backgroundColor: "#161616" }}
-             />
-           </div>
+          <div className="flex-1 overflow-auto p-4 bg-[#161616]">
+            <CodeMirror
+              value={code}
+              height="100%"
+              theme="dark"
+              extensions={[javascript({json: true})]}
+              onChange={(value) => setCode(value)}
+              className="text-sm"
+              basicSetup={{
+                lineNumbers: true,
+                highlightActiveLineGutter: true,
+                highlightSpecialChars: true,
+                foldGutter: true,
+                drawSelection: true,
+                dropCursor: true,
+                allowMultipleSelections: true,
+                indentOnInput: true,
+                bracketMatching: true,
+                closeBrackets: true,
+                autocompletion: true,
+                rectangularSelection: true,
+                crosshairCursor: true,
+                highlightActiveLine: true,
+                highlightSelectionMatches: true,
+                closeBracketsKeymap: true,
+                searchKeymap: true,
+                foldKeymap: true,
+                completionKeymap: true,
+                lintKeymap: true,
+              }}
+              style={{backgroundColor: "#161616"}}
+            />
+          </div>
         </div>
         <div className="w-3/5 overflow-auto p-5">
-          <h2 className="m-0 mb-5 text-lg font-semibold">Output</h2>
           {currentSpec && (
             <div>
-              <h3 className="mt-0 text-base">{currentSpec.char}</h3>
-              <div ref={nodeRef} className="flex flex-wrap"></div>
+              <div ref={nodeRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
             </div>
           )}
         </div>
