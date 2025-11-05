@@ -243,9 +243,13 @@ function App() {
   }, [selectedChar]);
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className="w-2/5 flex flex-col border-r border-[#333]">
-        <div className="p-4 border-b border-[#333] flex justify-between items-center">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <header className="p-4 border-b border-[#333]">
+        <h1 className="m-0 text-xl font-semibold">GType: A Graph Represetation for Typeface</h1>
+      </header>
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-2/5 flex flex-col border-r border-[#333]">
+          <div className="p-4 border-b border-[#333] flex justify-between items-center">
           <div>
             <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
               Select Character:
@@ -280,13 +284,14 @@ function App() {
         </div>
       </div>
       <div className="w-3/5 overflow-auto p-5">
-        <h1 className="m-0 mb-5">Output</h1>
+        <h2 className="m-0 mb-5 text-lg font-semibold">Output</h2>
         {currentSpec && (
           <div>
-            <h2 className="mt-0">{currentSpec.char}</h2>
+            <h3 className="mt-0 text-base">{currentSpec.char}</h3>
             <div ref={nodeRef} className="flex flex-wrap"></div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
