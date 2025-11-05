@@ -297,10 +297,25 @@ function drawWebGL(node, {random, spec, count, animate = true} = {}) {
   return canvas.remove;
 }
 
-function preprocessSpec(spec) {
+function preprocessSpec({nodes, links, constraints, ...rest}) {
+  const set = new Set(nodes);
+  const validConstraints = constraints.filter((constraint) => {
+    const [s, v, t] = parseConstraint(constraint);
+    return set.has(s) && set.has(t);
+  });
+  const validLinks = links
+    .map((link) =>
+      link
+        .split(",")
+        .filter((id) => set.has(id))
+        .join(",")
+    )
+    .filter((link) => link.length > 0);
   return {
-    ...spec,
-    constraints: inferConstraints(spec.constraints),
+    ...rest,
+    nodes,
+    links: validLinks,
+    constraints: inferConstraints(validConstraints),
   };
 }
 
