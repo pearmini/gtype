@@ -17,4 +17,10 @@ export const data = [
     links: ["a,b,c,d"],
     constraints: ["b>a", "bvc", "c>d", "avd", "c>a", "b>d"],
   },
+  {
+    char: "D",
+    nodes: ["a", "b", "c", "d", "e"],
+    links: ["a,b,c,d,e,a"],
+    constraints: ["a>b", "b>c", "bvc", "cvd", "d>c", "e>d", "e>b", "a>d", "avb", "dve"],
+  },
 ];
