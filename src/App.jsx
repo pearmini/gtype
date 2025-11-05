@@ -197,8 +197,7 @@ function App() {
 
   return (
     <>
-      <h1>Graph Typeface</h1>
-      <h1>A graph representation for typeface</h1>
+      <h1>Graph Typeface: A graph representation for typeface</h1>
       <div>
         <label htmlFor="char-select">Select Character:</label>
         <select id="char-select" value={selectedChar} onChange={(e) => setSelectedChar(e.target.value)}>
