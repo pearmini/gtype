@@ -297,7 +297,7 @@ function drawWebGL(node, {random, spec, count, animate = true} = {}) {
   return canvas.remove;
 }
 
-function preprocessSpec({nodes, links, constraints, ...rest}) {
+function preprocessSpec({nodes = [], links = [], constraints = [], ...rest}) {
   const set = new Set(nodes);
   const validConstraints = constraints.filter((constraint) => {
     const [s, v, t] = parseConstraint(constraint);
