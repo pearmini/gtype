@@ -1,7 +1,14 @@
 import {useEffect, useRef} from "react";
 import * as d3 from "d3";
-import {data} from "./data.js";
+import {data as _data} from "./data.js";
 import "./App.css";
+
+const data = _data.map((item) => {
+  return {
+    ...item,
+    constrains: inferConstrains(item.constrains),
+  };
+});
 
 function parseConstrain(c) {
   const [s, v, t] = c;
@@ -56,7 +63,7 @@ function inferConstrains(constrains) {
 }
 
 function pointsByConstrains(spec, {debug = false, random} = {}) {
-  const constrains = d3.sort(inferConstrains(spec.constrains), (d) => parseConstrain(d)[0]);
+  const constrains = d3.sort(spec.constrains, (d) => parseConstrain(d)[0]);
   const constrainsById = new Map();
 
   for (const c of constrains) {
