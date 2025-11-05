@@ -254,7 +254,7 @@ function App() {
       <header className="p-4 border-b border-[#333]">
         <h1 className="m-0 text-xl font-semibold">[WIP] GType: A Graph Representation for Typeface</h1>
       </header>
-      <div className="p-4 border-b border-[#333] flex justify-start items-center gap-4 bg-[#0f0f0f]">
+      <div className="p-4 border-b border-dashed border-[#333] flex justify-start items-center gap-4 bg-[#0f0f0f]">
         <button
           onClick={handleRun}
           className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
@@ -281,7 +281,7 @@ function App() {
         </div>
       </div>
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-1/3 flex flex-col border-r border-[#333]">
+        <div className="w-1/3 flex flex-col border-r border-dashed border-[#333]">
           <div className="flex-1 overflow-auto p-4 bg-[#161616]">
             <CodeMirror
               value={code}
