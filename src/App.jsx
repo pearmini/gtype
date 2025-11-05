@@ -1,18 +1,18 @@
 import {useEffect, useRef, useState} from "react";
 import * as d3 from "d3";
-import {data as _data} from "./data.js";
+import {data} from "./data.js";
 import CodeMirror from "@uiw/react-codemirror";
 import {javascript} from "@codemirror/lang-javascript";
 import * as webgl from "./webgl.js";
 import {Play} from "lucide-react";
 import "./App.css";
 
-const data = _data.map((item) => {
-  return {
-    ...item,
-    constrains: inferConstrains(item.constrains),
-  };
-});
+// const data = _data.map((item) => {
+//   return {
+//     ...item,
+//     constrains: inferConstrains(item.constrains),
+//   };
+// });
 
 function parseConstrain(c) {
   const [s, v, t] = c;
@@ -304,6 +304,13 @@ function drawWebGL(node, {random, spec, count, animate = true} = {}) {
   return canvas.remove;
 }
 
+function preprocessSpec(spec) {
+  return {
+    ...spec,
+    constrains: inferConstrains(spec.constrains),
+  };
+}
+
 const curveOptions = [
   {name: "Linear", value: "curveLinear"},
   {name: "Basis", value: "curveBasis"},
@@ -339,11 +346,7 @@ function App() {
   const handleRun = () => {
     try {
       const parsed = JSON.parse(code);
-      const processedSpec = {
-        ...parsed,
-        constrains: inferConstrains(parsed.constrains),
-      };
-      setCurrentSpec(processedSpec);
+      setCurrentSpec(parsed);
       setError(null);
       setCodeChanged(false);
     } catch (error) {
@@ -364,15 +367,16 @@ function App() {
     const curveType = d3[selectedCurve];
 
     const count = 20;
+    const processedSpec = preprocessSpec(currentSpec);
     let destroy;
 
     if (renderer === "WebGL") {
-      destroy = drawWebGL(parent, {random, spec: currentSpec, count, animate});
+      destroy = drawWebGL(parent, {random, spec: processedSpec, count, animate});
     } else if (renderer === "SVG") {
       for (let j = 0; j < 20; j++) {
         const node = document.createElement("div");
         parent.appendChild(node);
-        drawSVG(node, {random, spec: currentSpec, curveType, showDebug});
+        drawSVG(node, {random, spec: processedSpec, curveType, showDebug});
       }
     }
 
@@ -380,11 +384,11 @@ function App() {
   }, [currentSpec, selectedCurve, showDebug, renderer, seed, animate]);
 
   useEffect(() => {
-    const item = _data.find((d) => d.char === selectedChar);
+    const item = data.find((d) => d.char === selectedChar);
     if (item) {
       const newCode = JSON.stringify(item, null, 2);
       setCode(newCode);
-      setCurrentSpec(data.find((d) => d.char === selectedChar));
+      setCurrentSpec(item);
       setError(null);
       setCodeChanged(false);
     }
