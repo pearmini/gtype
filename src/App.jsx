@@ -126,7 +126,7 @@ function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, sh
   const Y = points.map(([x, y]) => y);
   const width = 200;
   const height = 200;
-  const padding = 20;
+  const padding = 30;
   const svg = d3
     .select(node)
     .append("svg")
@@ -198,7 +198,7 @@ const curveOptions = [
 
 function App() {
   const [selectedChar, setSelectedChar] = useState("A");
-  const [selectedCurve, setSelectedCurve] = useState("curveLinear");
+  const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
   const initialItem = data.find((d) => d.char === selectedChar);
 
