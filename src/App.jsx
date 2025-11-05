@@ -119,7 +119,7 @@ function pointsByConstrains(spec, {debug = false, random} = {}) {
   return placed;
 }
 
-function draw(node, {debug = false, random, spec} = {}) {
+function draw(node, {debug = false, random, spec, curveType = d3.curveLinear} = {}) {
   const pointById = pointsByConstrains(spec, {debug, random});
   const points = Array.from(pointById.values());
   const X = points.map(([x, y]) => x);
@@ -150,6 +150,7 @@ function draw(node, {debug = false, random, spec} = {}) {
   const paths = spec.paths.map((path) => path.split(",").map((id) => pointById.get(id)));
   const line = d3
     .line()
+    .curve(curveType)
     .x((d) => scaleX(d[0]))
     .y((d) => scaleY(d[1]));
 
@@ -179,8 +180,23 @@ function draw(node, {debug = false, random, spec} = {}) {
     .attr("font-size", 12);
 }
 
+const curveOptions = [
+  { name: "Linear", value: "curveLinear" },
+  { name: "Basis", value: "curveBasis" },
+  { name: "Bundle", value: "curveBundle" },
+  { name: "Cardinal", value: "curveCardinal" },
+  { name: "Catmull-Rom", value: "curveCatmullRom" },
+  { name: "Monotone X", value: "curveMonotoneX" },
+  { name: "Monotone Y", value: "curveMonotoneY" },
+  { name: "Natural", value: "curveNatural" },
+  { name: "Step", value: "curveStep" },
+  { name: "Step After", value: "curveStepAfter" },
+  { name: "Step Before", value: "curveStepBefore" },
+];
+
 function App() {
   const [selectedChar, setSelectedChar] = useState("A");
+  const [selectedCurve, setSelectedCurve] = useState("curveLinear");
   const initialItem = data.find((d) => d.char === selectedChar);
 
   const initialCode = JSON.stringify(
@@ -223,12 +239,13 @@ function App() {
     }
     const parent = nodeRef.current;
     if (parent) parent.innerHTML = "";
+    const curveType = d3[selectedCurve];
     for (let j = 0; j < 20; j++) {
       const node = document.createElement("div");
       parent.appendChild(node);
-      draw(node, {random, spec: currentSpec});
+      draw(node, {random, spec: currentSpec, curveType});
     }
-  }, [currentSpec]);
+  }, [currentSpec, selectedCurve]);
 
   useEffect(() => {
     const item = _data.find((d) => d.char === selectedChar);
@@ -279,6 +296,24 @@ function App() {
             ))}
           </select>
         </div>
+        <div>
+          <label htmlFor="curve-select" className="mr-2.5 text-[#e5e5e5]">
+            Curve:
+          </label>
+          <select
+            id="curve-select"
+            value={selectedCurve}
+            onChange={(e) => setSelectedCurve(e.target.value)}
+            className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+          >
+            {curveOptions.map((curve) => (
+              <option key={curve.value} value={curve.value}>
+                {curve.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
       </div>
       <div className="flex flex-1 overflow-hidden">
         <div className="w-1/3 flex flex-col border-r border-dashed border-[#333]">
