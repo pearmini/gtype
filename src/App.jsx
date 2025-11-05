@@ -214,7 +214,9 @@ function drawWebGL(node, {random, spec, count, animate = true} = {}) {
   const startY = -totalH / 2 + 0.125;
   for (let n = 0; n < fonts.length; n++) {
     let x = startX + (n % cols) * cw;
-    let y = startY + ((n / cols) >> 0) * ch;
+    let row = (n / cols) >> 0;
+    let maxRow = Math.ceil(fonts.length / cols) - 1;
+    let y = startY + (maxRow - row) * ch;
     let paths = fonts[n].paths;
     for (let i = 0; i < paths.length; i++) {
       let myPath = [];
