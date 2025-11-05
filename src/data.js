@@ -1,14 +1,14 @@
 export const data = [
   {
     char: "A",
-    nodes: [0, 1, 2, 3, 4],
-    paths: ["3,4,0,1,2", "4,1"],
-    constrains: ["0v1", "0v4", "1v2", "4v3", "1>2", "3>4", "4v2", "0>1", "4>0", "1v3"],
+    nodes: ["a", "b", "c", "d", "e"],
+    paths: ["d,e,a,b,c", "e,b"],
+    constrains: ["avb", "ave", "bvc", "evd", "b>c", "d>e", "evc", "a>b", "e>a", "bvd"],
   },
   {
     char: "B",
-    nodes: [0, 1, 2, 3, 4, 5, 6],
-    paths: ["0,1,2,3,4,5,6,3,0"],
-    constrains: ["0v1", "1v2", "3>2", "2v3", "3v4", "4v5", "5v6", "3>6", "0>2", "6>4", "2>1", "4>5"],
+    nodes: ["a", "b", "c", "d", "e", "f", "g"],
+    paths: ["a,b,c,d,e,f,g,d,a"],
+    constrains: ["avb", "bvc", "d>c", "cvd", "dve", "evf", "fvg", "d>g", "a>c", "g>e", "c>b", "e>f"],
   },
 ];
