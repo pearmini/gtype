@@ -254,34 +254,34 @@ function App() {
       <header className="p-4 border-b border-[#333]">
         <h1 className="m-0 text-xl font-semibold">[WIP] GType: A Graph Representation for Typeface</h1>
       </header>
+      <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#0f0f0f]">
+        <div>
+          <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
+            Character:
+          </label>
+          <select
+            id="char-select"
+            value={selectedChar}
+            onChange={(e) => setSelectedChar(e.target.value)}
+            className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+          >
+            {data.map((d) => (
+              <option key={d.char} value={d.char}>
+                {d.char}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={handleRun}
+          className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
+        >
+          <Play size={16} />
+          Run
+        </button>
+      </div>
       <div className="flex flex-1 overflow-hidden">
         <div className="w-1/3 flex flex-col border-r border-[#333]">
-          <div className="p-4 border-b border-dashed border-[#333] flex justify-between items-center">
-            <div>
-              <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
-                Character:
-              </label>
-              <select
-                id="char-select"
-                value={selectedChar}
-                onChange={(e) => setSelectedChar(e.target.value)}
-                className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
-              >
-                {data.map((d) => (
-                  <option key={d.char} value={d.char}>
-                    {d.char}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              onClick={handleRun}
-              className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
-            >
-              <Play size={16} />
-              Run
-            </button>
-          </div>
           <div className="flex-1 overflow-auto p-4 bg-[#161616]">
             <CodeMirror
               value={code}
