@@ -146,20 +146,16 @@ function draw(node, {debug = false, random, spec} = {}) {
     .domain(d3.extent(Y))
     .range([padding, height - padding]);
 
-  const lines = spec.links.map((link) => link.split(",").map((id) => pointById.get(id)));
+  // const lines = spec.links.map((link) => link.split(",").map((id) => pointById.get(id)));
+  const paths = spec.paths.map((path) => path.split(",").map((id) => pointById.get(id)));
+  const line = d3
+    .line()
+    .x((d) => scaleX(d[0]))
+    .y((d) => scaleY(d[1]));
 
   const entries = Array.from(pointById.entries());
 
-  svg
-    .selectAll("line")
-    .data(lines)
-    .join("line")
-    .attr("x1", (d) => scaleX(d[0][0]))
-    .attr("y1", (d) => scaleY(d[0][1]))
-    .attr("x2", (d) => scaleX(d[1][0]))
-    .attr("y2", (d) => scaleY(d[1][1]))
-    .attr("stroke", "#e5e5e5")
-    .attr("stroke-width", 1.5);
+  svg.selectAll("path").data(paths).join("path").attr("d", line).attr("stroke", "#e5e5e5").attr("stroke-width", 1.5);
 
   svg
     .selectAll("circle")
@@ -328,7 +324,10 @@ function App() {
             </div>
           ) : currentSpec ? (
             <div>
-              <div ref={nodeRef} className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4`}></div>
+              <div
+                ref={nodeRef}
+                className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4`}
+              ></div>
             </div>
           ) : null}
         </div>
