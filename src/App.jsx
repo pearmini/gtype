@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import {data as _data} from "./data.js";
 import CodeMirror from "@uiw/react-codemirror";
 import {javascript} from "@codemirror/lang-javascript";
+import * as webgl from "./webgl.js";
 import {Play} from "lucide-react";
 import "./App.css";
 
@@ -119,7 +120,7 @@ function pointsByConstrains(spec, {debug = false, random} = {}) {
   return placed;
 }
 
-function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, showDebug = false} = {}) {
+function drawSVG(node, {debug = false, random, spec, curveType = d3.curveLinear, showDebug = false} = {}) {
   const pointById = pointsByConstrains(spec, {debug, random});
   const points = Array.from(pointById.values());
   const X = points.map(([x, y]) => x);
@@ -146,8 +147,8 @@ function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, sh
     .domain(d3.extent(Y))
     .range([padding, height - padding]);
 
-  // const lines = spec.links.map((link) => link.split(",").map((id) => pointById.get(id)));
   const paths = spec.paths.map((path) => path.split(",").map((id) => pointById.get(id)));
+
   const line = d3
     .line()
     .curve(curveType)
@@ -182,6 +183,125 @@ function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, sh
   }
 }
 
+function drawWebGL(node, {random, spec, count, animate = true} = {}) {
+  const {contextGL, Matrix, M, Shader, drawMesh, V, setUniform} = webgl;
+  const fonts = d3.range(count).map(() => {
+    const pointById = pointsByConstrains(spec, {random});
+    const points = Array.from(pointById.values());
+    const X = points.map(([x, y]) => x);
+    const Y = points.map(([x, y]) => y);
+    const scaleX = d3.scaleLinear(d3.extent(X), [0, 1]);
+    const scaleY = d3.scaleLinear(d3.extent(Y), [0, 1]);
+    return {
+      name: spec.char,
+      paths: spec.paths.map((path) =>
+        path.split(",").map((id) => {
+          const [x, y] = pointById.get(id);
+          return [scaleX(x), scaleY(y)];
+        })
+      ),
+    };
+  });
+
+  const matrix = new Matrix();
+  const myPaths = [];
+  const cols = 5;
+  const cw = 0.14;
+  const ch = 0.16;
+  const totalW = cols * cw;
+  const totalH = Math.ceil(fonts.length / cols) * ch;
+  const startX = -totalW / 2 + 0.02;
+  const startY = -totalH / 2 + 0.125;
+  for (let n = 0; n < fonts.length; n++) {
+    let x = startX + (n % cols) * cw;
+    let y = startY + ((n / cols) >> 0) * ch;
+    let paths = fonts[n].paths;
+    for (let i = 0; i < paths.length; i++) {
+      let myPath = [];
+      let path = paths[i];
+      for (let j = 0; j < path.length; j++) {
+        let p = path[j];
+        myPath.push([x + (p[0] * 200) / 2000, y - (p[1] * 200) / 2000, 0]);
+      }
+      myPaths.push(myPath);
+    }
+  }
+
+  const mesh = createPathsMesh(0.005, myPaths);
+
+  const size = Math.min(node.clientWidth, node.clientHeight);
+
+  const canvas = contextGL({
+    width: size,
+    height: size,
+    update,
+    vertexShader: Shader.defaultVertexShader,
+    fragmentShader: Shader.defaultFragmentShader,
+    style: {padding: 0, margin: 0},
+  });
+
+  node.appendChild(canvas);
+
+  function createPathsMesh(width, paths) {
+    let vertices = [];
+    let addVertex = (pos) => vertices.push(pos, [0, 0, 1]);
+    for (let n = 0; n < paths.length; n++) {
+      let path = paths[n];
+      for (let i = 0; i < path.length - 1; i++) {
+        let b = path[i];
+        let c = path[i + 1];
+        let a = i > 0 ? path[i - 1] : V.add(b, V.subtract(b, c));
+        let da = V.normalize(V.subtract(b, a));
+        let dc = V.normalize(V.subtract(c, b));
+        let db = V.normalize(V.add(da, dc));
+        let s = V.dot(da, db);
+        da = V.resize(da, width / 2);
+        dc = V.resize(dc, width / 2);
+        db = V.resize(db, width / 2);
+        let ea = [-da[1], da[0], 0];
+        let ec = [-dc[1], dc[0], 0];
+        let eb = [-db[1] / s, db[0] / s, 0];
+        if (i == 0) b = V.subtract(b, da);
+        if (V.dot(da, dc) < 0) {
+          if (n > 0 && i == 0) addVertex(V.subtract(b, ea));
+          addVertex(V.subtract(b, ea));
+          addVertex(V.add(b, ea));
+          addVertex(V.subtract(b, ec));
+          addVertex(V.add(b, ec));
+        } else {
+          if (n > 0 && i == 0) addVertex(V.subtract(b, eb));
+          addVertex(V.subtract(b, eb));
+          addVertex(V.add(b, eb));
+        }
+        if (i == path.length - 2) {
+          addVertex(V.subtract(V.add(c, dc), ec));
+          addVertex(V.add(V.add(c, dc), ec));
+        }
+        if (n < paths.length - 1 && i == path.length - 2) addVertex(V.add(V.add(c, dc), ec));
+      }
+    }
+    return {
+      triangle_strip: true,
+      data: new Float32Array(vertices.flat()),
+    };
+  }
+
+  function draw(gl, mesh, meshMatrix, color) {
+    let m = M.mxm(M.perspective(0, 0, -0.5), meshMatrix ?? matrix.get());
+    setUniform(gl, "Matrix4fv", "uMF", false, m);
+    setUniform(gl, "Matrix4fv", "uMI", false, M.inverse(m));
+    setUniform(gl, "3fv", "uColor", color ?? [1, 1, 1]);
+    drawMesh(gl, mesh);
+  }
+
+  function update(gl) {
+    let time = animate ? Date.now() / 1000 : 0;
+    draw(gl, mesh, M.mxm(M.move(-0, -0, 0), M.mxm(M.turnY(Math.sin(time)), M.scale(2.5))));
+  }
+
+  return canvas.remove;
+}
+
 const curveOptions = [
   {name: "Linear", value: "curveLinear"},
   {name: "Basis", value: "curveBasis"},
@@ -197,9 +317,13 @@ const curveOptions = [
 ];
 
 function App() {
+  const [seed, setSeed] = useState(0);
+  const [seedInput, setSeedInput] = useState("0");
   const [selectedChar, setSelectedChar] = useState("A");
   const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
+  const [renderer, setRenderer] = useState("SVG");
+  const [animate, setAnimate] = useState(true);
   const initialItem = data.find((d) => d.char === selectedChar);
 
   const initialCode = JSON.stringify(initialItem, null, 2);
@@ -227,19 +351,29 @@ function App() {
 
   useEffect(() => {
     if (!currentSpec) return;
-    const r = d3.randomLcg(0);
+    const r = d3.randomLcg(seed);
     function random(min, max) {
       return min + (max - min) * r();
     }
     const parent = nodeRef.current;
     if (parent) parent.innerHTML = "";
     const curveType = d3[selectedCurve];
-    for (let j = 0; j < 20; j++) {
-      const node = document.createElement("div");
-      parent.appendChild(node);
-      draw(node, {random, spec: currentSpec, curveType, showDebug});
+
+    const count = 20;
+    let destroy;
+
+    if (renderer === "WebGL") {
+      destroy = drawWebGL(parent, {random, spec: currentSpec, count, animate});
+    } else if (renderer === "SVG") {
+      for (let j = 0; j < 20; j++) {
+        const node = document.createElement("div");
+        parent.appendChild(node);
+        drawSVG(node, {random, spec: currentSpec, curveType, showDebug});
+      }
     }
-  }, [currentSpec, selectedCurve, showDebug]);
+
+    return () => destroy?.();
+  }, [currentSpec, selectedCurve, showDebug, renderer, seed, animate]);
 
   useEffect(() => {
     const item = _data.find((d) => d.char === selectedChar);
@@ -264,6 +398,26 @@ function App() {
           <Play size={16} />
           Run
         </button>
+
+        <div>
+          <label htmlFor="seed-input" className="mr-2.5 text-[#e5e5e5]">
+            Seed:
+          </label>
+          <input
+            id="seed-input"
+            type="number"
+            value={seedInput}
+            onChange={(e) => {
+              setSeedInput(e.target.value);
+              const val = e.target.value === "" ? 0 : Number(e.target.value);
+              setSeed(isNaN(val) ? 0 : val);
+            }}
+            min={-Infinity}
+            max={Infinity}
+            step={1}
+            className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm w-20"
+          />
+        </div>
         <div>
           <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
             Character:
@@ -282,34 +436,66 @@ function App() {
           </select>
         </div>
         <div>
-          <label htmlFor="curve-select" className="mr-2.5 text-[#e5e5e5]">
-            Curve:
+          <label htmlFor="renderer-select" className="mr-2.5 text-[#e5e5e5]">
+            Renderer:
           </label>
           <select
-            id="curve-select"
-            value={selectedCurve}
-            onChange={(e) => setSelectedCurve(e.target.value)}
+            id="renderer-select"
+            value={renderer}
+            onChange={(e) => setRenderer(e.target.value)}
             className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
           >
-            {curveOptions.map((curve) => (
-              <option key={curve.value} value={curve.value}>
-                {curve.name}
-              </option>
-            ))}
+            <option value="SVG">SVG</option>
+            <option value="WebGL">WebGL</option>
           </select>
         </div>
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="debug-checkbox"
-            checked={showDebug}
-            onChange={(e) => setShowDebug(e.target.checked)}
-            className="mr-2 cursor-pointer"
-          />
-          <label htmlFor="debug-checkbox" className="text-[#e5e5e5] cursor-pointer">
-            Debug
-          </label>
-        </div>
+        {renderer === "WebGL" && (
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="animate-checkbox"
+              checked={animate}
+              onChange={(e) => setAnimate(e.target.checked)}
+              className="mr-2 cursor-pointer"
+            />
+            <label htmlFor="animate-checkbox" className="text-[#e5e5e5] cursor-pointer">
+              Animate
+            </label>
+          </div>
+        )}
+        {renderer === "SVG" && (
+          <>
+            <div>
+              <label htmlFor="curve-select" className="mr-2.5 text-[#e5e5e5]">
+                Curve:
+              </label>
+              <select
+                id="curve-select"
+                value={selectedCurve}
+                onChange={(e) => setSelectedCurve(e.target.value)}
+                className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+              >
+                {curveOptions.map((curve) => (
+                  <option key={curve.value} value={curve.value}>
+                    {curve.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="debug-checkbox"
+                checked={showDebug}
+                onChange={(e) => setShowDebug(e.target.checked)}
+                className="mr-2 cursor-pointer"
+              />
+              <label htmlFor="debug-checkbox" className="text-[#e5e5e5] cursor-pointer">
+                Debug
+              </label>
+            </div>
+          </>
+        )}
       </div>
       <div className="flex flex-1 overflow-hidden">
         <div className="w-1/3 flex flex-col border-r border-dashed border-[#333]">
@@ -354,10 +540,10 @@ function App() {
               <p className="text-red-300 font-mono text-sm">{error}</p>
             </div>
           ) : currentSpec ? (
-            <div>
+            <div className="w-full h-full">
               <div
                 ref={nodeRef}
-                className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4`}
+                className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full h-full`}
               ></div>
             </div>
           ) : null}
