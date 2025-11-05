@@ -119,7 +119,7 @@ function pointsByConstrains(spec, {debug = false, random} = {}) {
   return placed;
 }
 
-function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, showDebug = false} = {}) {
+function drawSVG(node, {debug = false, random, spec, curveType = d3.curveLinear, showDebug = false} = {}) {
   const pointById = pointsByConstrains(spec, {debug, random});
   const points = Array.from(pointById.values());
   const X = points.map(([x, y]) => x);
@@ -146,8 +146,8 @@ function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, sh
     .domain(d3.extent(Y))
     .range([padding, height - padding]);
 
-  // const lines = spec.links.map((link) => link.split(",").map((id) => pointById.get(id)));
   const paths = spec.paths.map((path) => path.split(",").map((id) => pointById.get(id)));
+
   const line = d3
     .line()
     .curve(curveType)
@@ -182,6 +182,10 @@ function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, sh
   }
 }
 
+function drawWebGL(node, {debug = false, random, spec, curveType = d3.curveLinear, showDebug = false} = {}) {
+  // TODO: Implement WebGL renderer
+}
+
 const curveOptions = [
   {name: "Linear", value: "curveLinear"},
   {name: "Basis", value: "curveBasis"},
@@ -200,6 +204,7 @@ function App() {
   const [selectedChar, setSelectedChar] = useState("A");
   const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
+  const [renderer, setRenderer] = useState("SVG");
   const initialItem = data.find((d) => d.char === selectedChar);
 
   const initialCode = JSON.stringify(initialItem, null, 2);
@@ -234,12 +239,13 @@ function App() {
     const parent = nodeRef.current;
     if (parent) parent.innerHTML = "";
     const curveType = d3[selectedCurve];
+    const drawFn = renderer === "SVG" ? drawSVG : drawWebGL;
     for (let j = 0; j < 20; j++) {
       const node = document.createElement("div");
       parent.appendChild(node);
-      draw(node, {random, spec: currentSpec, curveType, showDebug});
+      drawFn(node, {random, spec: currentSpec, curveType, showDebug});
     }
-  }, [currentSpec, selectedCurve, showDebug]);
+  }, [currentSpec, selectedCurve, showDebug, renderer]);
 
   useEffect(() => {
     const item = _data.find((d) => d.char === selectedChar);
@@ -264,6 +270,7 @@ function App() {
           <Play size={16} />
           Run
         </button>
+
         <div>
           <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
             Character:
@@ -279,6 +286,20 @@ function App() {
                 {d.char}
               </option>
             ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="renderer-select" className="mr-2.5 text-[#e5e5e5]">
+            Renderer:
+          </label>
+          <select
+            id="renderer-select"
+            value={renderer}
+            onChange={(e) => setRenderer(e.target.value)}
+            className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+          >
+            <option value="SVG">SVG</option>
+            <option value="WebGL">WebGL</option>
           </select>
         </div>
         <div>
