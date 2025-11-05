@@ -302,35 +302,39 @@ function App() {
             <option value="WebGL">WebGL</option>
           </select>
         </div>
-        <div>
-          <label htmlFor="curve-select" className="mr-2.5 text-[#e5e5e5]">
-            Curve:
-          </label>
-          <select
-            id="curve-select"
-            value={selectedCurve}
-            onChange={(e) => setSelectedCurve(e.target.value)}
-            className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
-          >
-            {curveOptions.map((curve) => (
-              <option key={curve.value} value={curve.value}>
-                {curve.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="debug-checkbox"
-            checked={showDebug}
-            onChange={(e) => setShowDebug(e.target.checked)}
-            className="mr-2 cursor-pointer"
-          />
-          <label htmlFor="debug-checkbox" className="text-[#e5e5e5] cursor-pointer">
-            Debug
-          </label>
-        </div>
+        {renderer === "SVG" && (
+          <>
+            <div>
+              <label htmlFor="curve-select" className="mr-2.5 text-[#e5e5e5]">
+                Curve:
+              </label>
+              <select
+                id="curve-select"
+                value={selectedCurve}
+                onChange={(e) => setSelectedCurve(e.target.value)}
+                className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+              >
+                {curveOptions.map((curve) => (
+                  <option key={curve.value} value={curve.value}>
+                    {curve.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="debug-checkbox"
+                checked={showDebug}
+                onChange={(e) => setShowDebug(e.target.checked)}
+                className="mr-2 cursor-pointer"
+              />
+              <label htmlFor="debug-checkbox" className="text-[#e5e5e5] cursor-pointer">
+                Debug
+              </label>
+            </div>
+          </>
+        )}
       </div>
       <div className="flex flex-1 overflow-hidden">
         <div className="w-1/3 flex flex-col border-r border-dashed border-[#333]">
