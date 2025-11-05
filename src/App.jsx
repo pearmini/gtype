@@ -256,7 +256,7 @@ function App() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <header className="p-4 border-b border-[#333]">
-        <h1 className="m-0 text-xl font-semibold">GType: A Graph Representation for Typeface</h1>
+        <h1 className="m-0 text-xl font-semibold">[WIP] GType: A Graph Representation for Typeface</h1>
       </header>
       <div className="flex flex-1 overflow-hidden">
         <div className="w-2/5 flex flex-col border-r border-[#333]">
