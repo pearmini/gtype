@@ -1,6 +1,9 @@
 import {useEffect, useRef, useState} from "react";
 import * as d3 from "d3";
 import {data as _data} from "./data.js";
+import CodeMirror from "@uiw/react-codemirror";
+import {javascript} from "@codemirror/lang-javascript";
+import {Play} from "lucide-react";
 import "./App.css";
 
 const data = _data.map((item) => {
@@ -175,11 +178,39 @@ function draw(node, {debug = false, random, spec} = {}) {
 
 function App() {
   const [selectedChar, setSelectedChar] = useState("A");
-  const item = data.find((d) => d.char === selectedChar);
+  const initialItem = data.find((d) => d.char === selectedChar);
+  
+  const initialCode = JSON.stringify(
+    {
+      char: initialItem.char,
+      nodes: initialItem.nodes,
+      links: initialItem.links,
+      constrains: _data.find((d) => d.char === selectedChar)?.constrains || [],
+    },
+    null,
+    2
+  );
+
+  const [code, setCode] = useState(initialCode);
+  const [currentSpec, setCurrentSpec] = useState(initialItem);
   const nodeRef = useRef(null);
 
+  const handleRun = () => {
+    try {
+      const parsed = JSON.parse(code);
+      const processedSpec = {
+        ...parsed,
+        constrains: inferConstrains(parsed.constrains),
+      };
+      setCurrentSpec(processedSpec);
+    } catch (error) {
+      console.error("Invalid JSON:", error);
+      alert("Invalid JSON format. Please check your code.");
+    }
+  };
+
   useEffect(() => {
-    if (!item) return;
+    if (!currentSpec) return;
     const r = d3.randomLcg(0);
     function random(min, max) {
       return min + (max - min) * r();
@@ -189,27 +220,75 @@ function App() {
     for (let j = 0; j < 14; j++) {
       const node = document.createElement("div");
       parent.appendChild(node);
-      draw(node, {random, spec: item});
+      draw(node, {random, spec: currentSpec});
+    }
+  }, [currentSpec]);
+
+  useEffect(() => {
+    const item = _data.find((d) => d.char === selectedChar);
+    if (item) {
+      const newCode = JSON.stringify(
+        {
+          char: item.char,
+          nodes: item.nodes,
+          links: item.links,
+          constrains: item.constrains,
+        },
+        null,
+        2
+      );
+      setCode(newCode);
+      setCurrentSpec(data.find((d) => d.char === selectedChar));
     }
   }, [selectedChar]);
 
   return (
-    <>
-      <h1>Graph Typeface: A graph representation for typeface</h1>
-      <div>
-        <label htmlFor="char-select">Select Character:</label>
-        <select id="char-select" value={selectedChar} onChange={(e) => setSelectedChar(e.target.value)}>
-          <option value="A">A</option>
-          <option value="B">B</option>
-        </select>
-      </div>
-      {item && (
-        <div>
-          <h2>{item.char}</h2>
-          <div ref={nodeRef} className="flex flex-wrap"></div>
+    <div className="flex h-screen overflow-hidden">
+      <div className="w-2/5 flex flex-col border-r border-[#333]">
+        <div className="p-4 border-b border-[#333] flex justify-between items-center">
+          <div>
+            <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
+              Select Character:
+            </label>
+            <select
+              id="char-select"
+              value={selectedChar}
+              onChange={(e) => setSelectedChar(e.target.value)}
+              className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+            >
+              <option value="A">A</option>
+              <option value="B">B</option>
+            </select>
+          </div>
+          <button
+            onClick={handleRun}
+            className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
+          >
+            <Play size={16} />
+            Run
+          </button>
         </div>
-      )}
-    </>
+        <div className="flex-1 overflow-auto">
+          <CodeMirror
+            value={code}
+            height="100%"
+            theme="dark"
+            extensions={[javascript({json: true})]}
+            onChange={(value) => setCode(value)}
+            className="text-sm"
+          />
+        </div>
+      </div>
+      <div className="w-3/5 overflow-auto p-5">
+        <h1 className="m-0 mb-5">Output</h1>
+        {currentSpec && (
+          <div>
+            <h2 className="mt-0">{currentSpec.char}</h2>
+            <div ref={nodeRef} className="flex flex-wrap"></div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
