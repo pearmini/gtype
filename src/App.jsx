@@ -148,8 +148,8 @@ function draw(node, {debug = false, random, spec} = {}) {
     .attr("y1", (d) => scaleY(d[0][1]))
     .attr("x2", (d) => scaleX(d[1][0]))
     .attr("y2", (d) => scaleY(d[1][1]))
-    .attr("stroke", "black")
-    .attr("stroke-width", 1);
+    .attr("stroke", "#e5e5e5")
+    .attr("stroke-width", 1.5);
 
   svg
     .selectAll("circle")
@@ -157,7 +157,8 @@ function draw(node, {debug = false, random, spec} = {}) {
     .join("circle")
     .attr("cx", (d) => scaleX(d[0]))
     .attr("cy", (d) => scaleY(d[1]))
-    .attr("r", 8);
+    .attr("r", 8)
+    .attr("fill", "#e5e5e5");
 
   svg
     .selectAll("text")
@@ -168,7 +169,7 @@ function draw(node, {debug = false, random, spec} = {}) {
     .attr("y", (d) => scaleY(d[1][1]))
     .attr("text-anchor", "middle")
     .attr("dominant-baseline", "middle")
-    .attr("fill", "white")
+    .attr("fill", "#000")
     .attr("font-size", 12);
 }
 
