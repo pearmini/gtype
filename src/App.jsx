@@ -1,7 +1,17 @@
-import {useEffect, useRef} from "react";
+import {useEffect, useRef, useState} from "react";
 import * as d3 from "d3";
-import {data} from "./data.js";
+import {data as _data} from "./data.js";
+import CodeMirror from "@uiw/react-codemirror";
+import {javascript} from "@codemirror/lang-javascript";
+import {Play} from "lucide-react";
 import "./App.css";
+
+const data = _data.map((item) => {
+  return {
+    ...item,
+    constrains: inferConstrains(item.constrains),
+  };
+});
 
 function parseConstrain(c) {
   const [s, v, t] = c;
@@ -56,7 +66,7 @@ function inferConstrains(constrains) {
 }
 
 function pointsByConstrains(spec, {debug = false, random} = {}) {
-  const constrains = d3.sort(inferConstrains(spec.constrains), (d) => parseConstrain(d)[0]);
+  const constrains = d3.sort(spec.constrains, (d) => parseConstrain(d)[0]);
   const constrainsById = new Map();
 
   for (const c of constrains) {
@@ -117,7 +127,14 @@ function draw(node, {debug = false, random, spec} = {}) {
   const width = 200;
   const height = 200;
   const padding = 20;
-  const svg = d3.select(node).append("svg").attr("width", width).attr("height", height);
+  const svg = d3
+    .select(node)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .style("width", "100%")
+    .style("height", "100%");
 
   const scaleX = d3
     .scaleLinear()
@@ -141,8 +158,8 @@ function draw(node, {debug = false, random, spec} = {}) {
     .attr("y1", (d) => scaleY(d[0][1]))
     .attr("x2", (d) => scaleX(d[1][0]))
     .attr("y2", (d) => scaleY(d[1][1]))
-    .attr("stroke", "black")
-    .attr("stroke-width", 1);
+    .attr("stroke", "#e5e5e5")
+    .attr("stroke-width", 1.5);
 
   svg
     .selectAll("circle")
@@ -150,7 +167,8 @@ function draw(node, {debug = false, random, spec} = {}) {
     .join("circle")
     .attr("cx", (d) => scaleX(d[0]))
     .attr("cy", (d) => scaleY(d[1]))
-    .attr("r", 8);
+    .attr("r", 8)
+    .attr("fill", "#e5e5e5");
 
   svg
     .selectAll("text")
@@ -161,41 +179,161 @@ function draw(node, {debug = false, random, spec} = {}) {
     .attr("y", (d) => scaleY(d[1][1]))
     .attr("text-anchor", "middle")
     .attr("dominant-baseline", "middle")
-    .attr("fill", "white")
+    .attr("fill", "#000")
     .attr("font-size", 12);
 }
 
 function App() {
-  const nodeRefs = data.map(() => useRef(null));
+  const [selectedChar, setSelectedChar] = useState("A");
+  const initialItem = data.find((d) => d.char === selectedChar);
+
+  const initialCode = JSON.stringify(
+    {
+      char: initialItem.char,
+      nodes: initialItem.nodes,
+      links: initialItem.links,
+      constrains: _data.find((d) => d.char === selectedChar)?.constrains || [],
+    },
+    null,
+    2
+  );
+
+  const [code, setCode] = useState(initialCode);
+  const [currentSpec, setCurrentSpec] = useState(initialItem);
+  const [error, setError] = useState(null);
+  const nodeRef = useRef(null);
+
+  const handleRun = () => {
+    try {
+      const parsed = JSON.parse(code);
+      const processedSpec = {
+        ...parsed,
+        constrains: inferConstrains(parsed.constrains),
+      };
+      setCurrentSpec(processedSpec);
+      setError(null);
+    } catch (error) {
+      console.error("Invalid JSON:", error);
+      setError(error.message);
+      setCurrentSpec(null);
+    }
+  };
 
   useEffect(() => {
-    for (let i = 0; i < data.length; i++) {
-      const item = data[i];
-      const r = d3.randomLcg(i * 100);
-      function random(min, max) {
-        return min + (max - min) * r();
-      }
-      const parent = nodeRefs[i].current;
-      if (parent) parent.innerHTML = "";
-      for (let j = 0; j < 14; j++) {
-        const node = document.createElement("div");
-        parent.appendChild(node);
-        draw(node, {random, spec: item});
-      }
+    if (!currentSpec) return;
+    const r = d3.randomLcg(0);
+    function random(min, max) {
+      return min + (max - min) * r();
     }
-  }, []);
+    const parent = nodeRef.current;
+    if (parent) parent.innerHTML = "";
+    for (let j = 0; j < 16; j++) {
+      const node = document.createElement("div");
+      parent.appendChild(node);
+      draw(node, {random, spec: currentSpec});
+    }
+  }, [currentSpec]);
+
+  useEffect(() => {
+    const item = _data.find((d) => d.char === selectedChar);
+    if (item) {
+      const newCode = JSON.stringify(
+        {
+          char: item.char,
+          nodes: item.nodes,
+          links: item.links,
+          constrains: item.constrains,
+        },
+        null,
+        2
+      );
+      setCode(newCode);
+      setCurrentSpec(data.find((d) => d.char === selectedChar));
+      setError(null);
+    }
+  }, [selectedChar]);
 
   return (
-    <>
-      <h1>Graph Typeface</h1>
-      <h1>A graph representation for typeface</h1>
-      {data.map((item, index) => (
-        <div key={index}>
-          <h2>{item.char}</h2>
-          <div ref={nodeRefs[index]} className="flex flex-wrap"></div>
+    <div className="flex flex-col h-screen overflow-hidden">
+      <header className="p-4 border-b border-[#333]">
+        <h1 className="m-0 text-xl font-semibold">[WIP] GType: A Graph Representation for Typeface</h1>
+      </header>
+      <div className="flex flex-1 overflow-hidden">
+        <div className="w-2/5 flex flex-col border-r border-[#333]">
+          <div className="p-4 border-b border-dashed border-[#333] flex justify-between items-center">
+            <div>
+              <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
+                Character:
+              </label>
+              <select
+                id="char-select"
+                value={selectedChar}
+                onChange={(e) => setSelectedChar(e.target.value)}
+                className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+              >
+                {data.map((d) => (
+                  <option key={d.char} value={d.char}>
+                    {d.char}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleRun}
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
+            >
+              <Play size={16} />
+              Run
+            </button>
+          </div>
+          <div className="flex-1 overflow-auto p-4 bg-[#161616]">
+            <CodeMirror
+              value={code}
+              height="100%"
+              theme="dark"
+              extensions={[javascript({json: true})]}
+              onChange={(value) => setCode(value)}
+              className="text-sm"
+              basicSetup={{
+                lineNumbers: true,
+                highlightActiveLineGutter: true,
+                highlightSpecialChars: true,
+                foldGutter: true,
+                drawSelection: true,
+                dropCursor: true,
+                allowMultipleSelections: true,
+                indentOnInput: true,
+                bracketMatching: true,
+                closeBrackets: true,
+                autocompletion: true,
+                rectangularSelection: true,
+                crosshairCursor: true,
+                highlightActiveLine: true,
+                highlightSelectionMatches: true,
+                closeBracketsKeymap: true,
+                searchKeymap: true,
+                foldKeymap: true,
+                completionKeymap: true,
+                lintKeymap: true,
+              }}
+              style={{backgroundColor: "#161616"}}
+            />
+          </div>
         </div>
-      ))}
-    </>
+        <div className="w-3/5 overflow-auto p-5">
+          {error ? (
+            <div className="bg-red-900/20 border border-red-500 rounded p-4">
+              <h2 className="text-red-400 font-semibold mb-2 text-lg">Error</h2>
+              <p className="text-red-300 font-mono text-sm">{error}</p>
+            </div>
+          ) : currentSpec ? (
+            <div>
+              <div ref={nodeRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
   );
 }
 
