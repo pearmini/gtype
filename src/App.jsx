@@ -147,7 +147,7 @@ function drawSVG(node, {debug = false, random, spec, curveType = d3.curveLinear,
     .domain(d3.extent(Y))
     .range([padding, height - padding]);
 
-  const paths = spec.paths.map((path) => path.split(",").map((id) => pointById.get(id)));
+  const paths = spec.links.map((path) => path.split(",").map((id) => pointById.get(id)));
 
   const line = d3
     .line()
@@ -194,7 +194,7 @@ function drawWebGL(node, {random, spec, count, animate = true} = {}) {
     const scaleY = d3.scaleLinear(d3.extent(Y), [0, 1]);
     return {
       name: spec.char,
-      paths: spec.paths.map((path) =>
+      paths: spec.links.map((path) =>
         path.split(",").map((id) => {
           const [x, y] = pointById.get(id);
           return [scaleX(x), scaleY(y)];
