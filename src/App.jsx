@@ -322,7 +322,7 @@ function App() {
   const [selectedChar, setSelectedChar] = useState("A");
   const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
-  const [renderer, setRenderer] = useState("WebGL");
+  const [renderer, setRenderer] = useState("SVG");
   const [animate, setAnimate] = useState(true);
   const initialItem = data.find((d) => d.char === selectedChar);
 
