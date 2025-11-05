@@ -200,6 +200,7 @@ function App() {
 
   const [code, setCode] = useState(initialCode);
   const [currentSpec, setCurrentSpec] = useState(initialItem);
+  const [error, setError] = useState(null);
   const nodeRef = useRef(null);
 
   const handleRun = () => {
@@ -210,9 +211,11 @@ function App() {
         constrains: inferConstrains(parsed.constrains),
       };
       setCurrentSpec(processedSpec);
+      setError(null);
     } catch (error) {
       console.error("Invalid JSON:", error);
-      alert("Invalid JSON format. Please check your code.");
+      setError(error.message);
+      setCurrentSpec(null);
     }
   };
 
@@ -246,6 +249,7 @@ function App() {
       );
       setCode(newCode);
       setCurrentSpec(data.find((d) => d.char === selectedChar));
+      setError(null);
     }
   }, [selectedChar]);
 
@@ -317,11 +321,16 @@ function App() {
           </div>
         </div>
         <div className="w-3/5 overflow-auto p-5">
-          {currentSpec && (
+          {error ? (
+            <div className="bg-red-900/20 border border-red-500 rounded p-4">
+              <h2 className="text-red-400 font-semibold mb-2 text-lg">Error</h2>
+              <p className="text-red-300 font-mono text-sm">{error}</p>
+            </div>
+          ) : currentSpec ? (
             <div>
               <div ref={nodeRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
