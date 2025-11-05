@@ -259,7 +259,7 @@ function App() {
         <h1 className="m-0 text-xl font-semibold">[WIP] GType: A Graph Representation for Typeface</h1>
       </header>
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-2/5 flex flex-col border-r border-[#333]">
+        <div className="w-1/3 flex flex-col border-r border-[#333]">
           <div className="p-4 border-b border-dashed border-[#333] flex justify-between items-center">
             <div>
               <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
@@ -320,7 +320,7 @@ function App() {
             />
           </div>
         </div>
-        <div className="w-3/5 overflow-auto p-5">
+        <div className="w-2/3 overflow-auto p-5">
           {error ? (
             <div className="bg-red-900/20 border border-red-500 rounded p-4">
               <h2 className="text-red-400 font-semibold mb-2 text-lg">Error</h2>
