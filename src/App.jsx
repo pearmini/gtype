@@ -175,23 +175,21 @@ function draw(node, {debug = false, random, spec} = {}) {
 
 function App() {
   const [selectedChar, setSelectedChar] = useState("A");
-  const filteredData = data.filter((item) => item.char === selectedChar);
-  const nodeRefs = filteredData.map(() => useRef(null));
+  const item = data.find((d) => d.char === selectedChar);
+  const nodeRef = useRef(null);
 
   useEffect(() => {
-    for (let i = 0; i < filteredData.length; i++) {
-      const item = filteredData[i];
-      const r = d3.randomLcg(i * 100);
-      function random(min, max) {
-        return min + (max - min) * r();
-      }
-      const parent = nodeRefs[i].current;
-      if (parent) parent.innerHTML = "";
-      for (let j = 0; j < 14; j++) {
-        const node = document.createElement("div");
-        parent.appendChild(node);
-        draw(node, {random, spec: item});
-      }
+    if (!item) return;
+    const r = d3.randomLcg(0);
+    function random(min, max) {
+      return min + (max - min) * r();
+    }
+    const parent = nodeRef.current;
+    if (parent) parent.innerHTML = "";
+    for (let j = 0; j < 14; j++) {
+      const node = document.createElement("div");
+      parent.appendChild(node);
+      draw(node, {random, spec: item});
     }
   }, [selectedChar]);
 
@@ -205,12 +203,12 @@ function App() {
           <option value="B">B</option>
         </select>
       </div>
-      {filteredData.map((item, index) => (
-        <div key={index}>
+      {item && (
+        <div>
           <h2>{item.char}</h2>
-          <div ref={nodeRefs[index]} className="flex flex-wrap"></div>
+          <div ref={nodeRef} className="flex flex-wrap"></div>
         </div>
-      ))}
+      )}
     </>
   );
 }
