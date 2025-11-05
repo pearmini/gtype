@@ -201,6 +201,8 @@ const curveOptions = [
 ];
 
 function App() {
+  const [seed, setSeed] = useState(0);
+  const [seedInput, setSeedInput] = useState("0");
   const [selectedChar, setSelectedChar] = useState("A");
   const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
@@ -232,7 +234,7 @@ function App() {
 
   useEffect(() => {
     if (!currentSpec) return;
-    const r = d3.randomLcg(0);
+    const r = d3.randomLcg(seed);
     function random(min, max) {
       return min + (max - min) * r();
     }
@@ -245,7 +247,7 @@ function App() {
       parent.appendChild(node);
       drawFn(node, {random, spec: currentSpec, curveType, showDebug});
     }
-  }, [currentSpec, selectedCurve, showDebug, renderer]);
+  }, [currentSpec, selectedCurve, showDebug, renderer, seed]);
 
   useEffect(() => {
     const item = _data.find((d) => d.char === selectedChar);
@@ -271,6 +273,25 @@ function App() {
           Run
         </button>
 
+        <div>
+          <label htmlFor="seed-input" className="mr-2.5 text-[#e5e5e5]">
+            Seed:
+          </label>
+          <input
+            id="seed-input"
+            type="number"
+            value={seedInput}
+            onChange={(e) => {
+              setSeedInput(e.target.value);
+              const val = e.target.value === "" ? 0 : Number(e.target.value);
+              setSeed(isNaN(val) ? 0 : val);
+            }}
+            min={-Infinity}
+            max={Infinity}
+            step={1}
+            className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm w-20"
+          />
+        </div>
         <div>
           <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
             Character:
