@@ -263,7 +263,7 @@ function App() {
           <div className="p-4 border-b border-[#333] flex justify-between items-center">
             <div>
               <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
-                Select Character:
+                Character:
               </label>
               <select
                 id="char-select"
