@@ -179,7 +179,7 @@ function draw(node, {debug = false, random, spec} = {}) {
 function App() {
   const [selectedChar, setSelectedChar] = useState("A");
   const initialItem = data.find((d) => d.char === selectedChar);
-  
+
   const initialCode = JSON.stringify(
     {
       char: initialItem.char,
@@ -250,48 +250,51 @@ function App() {
       <div className="flex flex-1 overflow-hidden">
         <div className="w-2/5 flex flex-col border-r border-[#333]">
           <div className="p-4 border-b border-[#333] flex justify-between items-center">
-          <div>
-            <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
-              Select Character:
-            </label>
-            <select
-              id="char-select"
-              value={selectedChar}
-              onChange={(e) => setSelectedChar(e.target.value)}
-              className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+            <div>
+              <label htmlFor="char-select" className="mr-2.5 text-[#e5e5e5]">
+                Select Character:
+              </label>
+              <select
+                id="char-select"
+                value={selectedChar}
+                onChange={(e) => setSelectedChar(e.target.value)}
+                className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
+              >
+                {data.map((d) => (
+                  <option key={d.char} value={d.char}>
+                    {d.char}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleRun}
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
             >
-              <option value="A">A</option>
-              <option value="B">B</option>
-            </select>
+              <Play size={16} />
+              Run
+            </button>
           </div>
-          <button
-            onClick={handleRun}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-500 text-white border-none rounded cursor-pointer text-sm font-medium hover:bg-blue-600 transition-colors"
-          >
-            <Play size={16} />
-            Run
-          </button>
-        </div>
-        <div className="flex-1 overflow-auto">
-          <CodeMirror
-            value={code}
-            height="100%"
-            theme="dark"
-            extensions={[javascript({json: true})]}
-            onChange={(value) => setCode(value)}
-            className="text-sm"
-          />
-        </div>
-      </div>
-      <div className="w-3/5 overflow-auto p-5">
-        <h2 className="m-0 mb-5 text-lg font-semibold">Output</h2>
-        {currentSpec && (
-          <div>
-            <h3 className="mt-0 text-base">{currentSpec.char}</h3>
-            <div ref={nodeRef} className="flex flex-wrap"></div>
+          <div className="flex-1 overflow-auto">
+            <CodeMirror
+              value={code}
+              height="100%"
+              theme="dark"
+              extensions={[javascript({json: true})]}
+              onChange={(value) => setCode(value)}
+              className="text-sm"
+            />
           </div>
-        )}
-      </div>
+        </div>
+        <div className="w-3/5 overflow-auto p-5">
+          <h2 className="m-0 mb-5 text-lg font-semibold">Output</h2>
+          {currentSpec && (
+            <div>
+              <h3 className="mt-0 text-base">{currentSpec.char}</h3>
+              <div ref={nodeRef} className="flex flex-wrap"></div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
