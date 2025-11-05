@@ -183,17 +183,17 @@ function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, sh
 }
 
 const curveOptions = [
-  { name: "Linear", value: "curveLinear" },
-  { name: "Basis", value: "curveBasis" },
-  { name: "Bundle", value: "curveBundle" },
-  { name: "Cardinal", value: "curveCardinal" },
-  { name: "Catmull-Rom", value: "curveCatmullRom" },
-  { name: "Monotone X", value: "curveMonotoneX" },
-  { name: "Monotone Y", value: "curveMonotoneY" },
-  { name: "Natural", value: "curveNatural" },
-  { name: "Step", value: "curveStep" },
-  { name: "Step After", value: "curveStepAfter" },
-  { name: "Step Before", value: "curveStepBefore" },
+  {name: "Linear", value: "curveLinear"},
+  {name: "Basis", value: "curveBasis"},
+  {name: "Bundle", value: "curveBundle"},
+  {name: "Cardinal", value: "curveCardinal"},
+  {name: "Catmull-Rom", value: "curveCatmullRom"},
+  {name: "Monotone X", value: "curveMonotoneX"},
+  {name: "Monotone Y", value: "curveMonotoneY"},
+  {name: "Natural", value: "curveNatural"},
+  {name: "Step", value: "curveStep"},
+  {name: "Step After", value: "curveStepAfter"},
+  {name: "Step Before", value: "curveStepBefore"},
 ];
 
 function App() {
@@ -202,16 +202,7 @@ function App() {
   const [showDebug, setShowDebug] = useState(false);
   const initialItem = data.find((d) => d.char === selectedChar);
 
-  const initialCode = JSON.stringify(
-    {
-      char: initialItem.char,
-      nodes: initialItem.nodes,
-      links: initialItem.links,
-      constrains: _data.find((d) => d.char === selectedChar)?.constrains || [],
-    },
-    null,
-    2
-  );
+  const initialCode = JSON.stringify(initialItem, null, 2);
 
   const [code, setCode] = useState(initialCode);
   const [currentSpec, setCurrentSpec] = useState(initialItem);
@@ -253,16 +244,7 @@ function App() {
   useEffect(() => {
     const item = _data.find((d) => d.char === selectedChar);
     if (item) {
-      const newCode = JSON.stringify(
-        {
-          char: item.char,
-          nodes: item.nodes,
-          links: item.links,
-          constrains: item.constrains,
-        },
-        null,
-        2
-      );
+      const newCode = JSON.stringify(item, null, 2);
       setCode(newCode);
       setCurrentSpec(data.find((d) => d.char === selectedChar));
       setError(null);
@@ -328,7 +310,6 @@ function App() {
             Debug
           </label>
         </div>
-
       </div>
       <div className="flex flex-1 overflow-hidden">
         <div className="w-1/3 flex flex-col border-r border-dashed border-[#333]">
