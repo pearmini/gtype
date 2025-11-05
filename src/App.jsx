@@ -119,7 +119,7 @@ function pointsByConstrains(spec, {debug = false, random} = {}) {
   return placed;
 }
 
-function draw(node, {debug = false, random, spec, curveType = d3.curveLinear} = {}) {
+function draw(node, {debug = false, random, spec, curveType = d3.curveLinear, showDebug = false} = {}) {
   const pointById = pointsByConstrains(spec, {debug, random});
   const points = Array.from(pointById.values());
   const X = points.map(([x, y]) => x);
@@ -158,26 +158,28 @@ function draw(node, {debug = false, random, spec, curveType = d3.curveLinear} = 
 
   svg.selectAll("path").data(paths).join("path").attr("d", line).attr("stroke", "#e5e5e5").attr("stroke-width", 1.5);
 
-  svg
-    .selectAll("circle")
-    .data(points)
-    .join("circle")
-    .attr("cx", (d) => scaleX(d[0]))
-    .attr("cy", (d) => scaleY(d[1]))
-    .attr("r", 8)
-    .attr("fill", "#e5e5e5");
+  if (showDebug) {
+    svg
+      .selectAll("circle")
+      .data(points)
+      .join("circle")
+      .attr("cx", (d) => scaleX(d[0]))
+      .attr("cy", (d) => scaleY(d[1]))
+      .attr("r", 8)
+      .attr("fill", "#e5e5e5");
 
-  svg
-    .selectAll("text")
-    .data(entries)
-    .join("text")
-    .text((d) => d[0])
-    .attr("x", (d) => scaleX(d[1][0]))
-    .attr("y", (d) => scaleY(d[1][1]))
-    .attr("text-anchor", "middle")
-    .attr("dominant-baseline", "middle")
-    .attr("fill", "#000")
-    .attr("font-size", 12);
+    svg
+      .selectAll("text")
+      .data(entries)
+      .join("text")
+      .text((d) => d[0])
+      .attr("x", (d) => scaleX(d[1][0]))
+      .attr("y", (d) => scaleY(d[1][1]))
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle")
+      .attr("fill", "#000")
+      .attr("font-size", 12);
+  }
 }
 
 const curveOptions = [
@@ -197,6 +199,7 @@ const curveOptions = [
 function App() {
   const [selectedChar, setSelectedChar] = useState("A");
   const [selectedCurve, setSelectedCurve] = useState("curveLinear");
+  const [showDebug, setShowDebug] = useState(false);
   const initialItem = data.find((d) => d.char === selectedChar);
 
   const initialCode = JSON.stringify(
@@ -243,9 +246,9 @@ function App() {
     for (let j = 0; j < 20; j++) {
       const node = document.createElement("div");
       parent.appendChild(node);
-      draw(node, {random, spec: currentSpec, curveType});
+      draw(node, {random, spec: currentSpec, curveType, showDebug});
     }
-  }, [currentSpec, selectedCurve]);
+  }, [currentSpec, selectedCurve, showDebug]);
 
   useEffect(() => {
     const item = _data.find((d) => d.char === selectedChar);
@@ -312,6 +315,18 @@ function App() {
               </option>
             ))}
           </select>
+        </div>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="debug-checkbox"
+            checked={showDebug}
+            onChange={(e) => setShowDebug(e.target.checked)}
+            className="mr-2 cursor-pointer"
+          />
+          <label htmlFor="debug-checkbox" className="text-[#e5e5e5] cursor-pointer">
+            Debug
+          </label>
         </div>
 
       </div>
