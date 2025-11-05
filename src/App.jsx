@@ -183,7 +183,7 @@ function drawSVG(node, {debug = false, random, spec, curveType = d3.curveLinear,
   }
 }
 
-function drawWebGL(node, {random, spec, count} = {}) {
+function drawWebGL(node, {random, spec, count, animate = true} = {}) {
   const {contextGL, Matrix, M, Shader, drawMesh, V, setUniform} = webgl;
   const fonts = d3.range(count).map(() => {
     const pointById = pointsByConstrains(spec, {random});
@@ -295,8 +295,7 @@ function drawWebGL(node, {random, spec, count} = {}) {
   }
 
   function update(gl) {
-    let time = Date.now() / 1000;
-    // time = 0;
+    let time = animate ? Date.now() / 1000 : 0;
     draw(gl, mesh, M.mxm(M.move(-0, -0, 0), M.mxm(M.turnY(Math.sin(time)), M.scale(2.5))));
   }
 
@@ -324,6 +323,7 @@ function App() {
   const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
   const [renderer, setRenderer] = useState("WebGL");
+  const [animate, setAnimate] = useState(true);
   const initialItem = data.find((d) => d.char === selectedChar);
 
   const initialCode = JSON.stringify(initialItem, null, 2);
@@ -363,7 +363,7 @@ function App() {
     let destroy;
 
     if (renderer === "WebGL") {
-      destroy = drawWebGL(parent, {random, spec: currentSpec, count});
+      destroy = drawWebGL(parent, {random, spec: currentSpec, count, animate});
     } else if (renderer === "SVG") {
       for (let j = 0; j < 20; j++) {
         const node = document.createElement("div");
@@ -373,7 +373,7 @@ function App() {
     }
 
     return () => destroy?.();
-  }, [currentSpec, selectedCurve, showDebug, renderer, seed]);
+  }, [currentSpec, selectedCurve, showDebug, renderer, seed, animate]);
 
   useEffect(() => {
     const item = _data.find((d) => d.char === selectedChar);
@@ -449,6 +449,20 @@ function App() {
             <option value="WebGL">WebGL</option>
           </select>
         </div>
+        {renderer === "WebGL" && (
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="animate-checkbox"
+              checked={animate}
+              onChange={(e) => setAnimate(e.target.checked)}
+              className="mr-2 cursor-pointer"
+            />
+            <label htmlFor="animate-checkbox" className="text-[#e5e5e5] cursor-pointer">
+              Animate
+            </label>
+          </div>
+        )}
         {renderer === "SVG" && (
           <>
             <div>
