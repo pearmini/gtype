@@ -336,7 +336,7 @@ const curveOptions = [
 function App() {
   const [seed, setSeed] = useState(0);
   const [seedInput, setSeedInput] = useState("0");
-  const [selectedChar, setSelectedChar] = useState("A");
+  const [selectedChar, setSelectedChar] = useState(data[0].char);
   const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
   const [renderer, setRenderer] = useState("SVG");
