@@ -95,7 +95,9 @@ function App() {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <header className="p-4 border-b border-[#333]">
-        <h1 className="m-0 text-xl font-semibold">[WIP] GType: A Graph Representation for Typeface</h1>
+        <h1 className="m-0 text-xl font-semibold">
+          [WIP] GType: Procedurally Generated Typefaces based on a Graph Representation
+        </h1>
       </header>
       <div className="p-4 border-b border-dashed border-[#333] flex justify-start items-center gap-4 bg-[#0f0f0f]">
         <button
