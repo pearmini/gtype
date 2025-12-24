@@ -60,13 +60,22 @@ function inferConstraints(constraints) {
 }
 
 function pointsByConstraints(spec, {debug = false, random} = {}) {
-  const constraints = d3.sort(spec.constraints, (d) => parseConstraint(d)[0]);
+  const positionConstraints = spec.constraints.position || [];
+  const sideConstraints = spec.constraints.side || [];
+
+  const constraints = d3.sort(positionConstraints, (d) => parseConstraint(d)[0]);
   const constraintsById = new Map();
 
   for (const c of constraints) {
     const [s, v, t] = parseConstraint(c);
     constraintsById.set(s, (constraintsById.get(s) || []).concat([[t, v, 1]]));
     constraintsById.set(t, (constraintsById.get(t) || []).concat([[s, v, 0]]));
+  }
+
+  // TODO: Process sideConstraints here
+  // For now, we'll store them but not use them in the constraint solver yet
+  if (sideConstraints.length > 0 && debug) {
+    console.log("Side constraints (not yet implemented):", sideConstraints);
   }
 
   const placed = new Map();
@@ -304,12 +313,28 @@ function drawWebGL(node, {random, spec, count, animate = true} = {}) {
   return canvas.remove;
 }
 
-function preprocessSpec({nodes = [], links = [], constraints = [], ...rest}) {
+function preprocessSpec({nodes = [], links = [], constraints = {}, ...rest}) {
   const set = new Set(nodes);
-  const validConstraints = constraints.filter((constraint) => {
+
+  const positionConstraints = constraints.position || [];
+  const sideConstraints = constraints.side || [];
+
+  const validPositionConstraints = positionConstraints.filter((constraint) => {
     const [s, v, t] = parseConstraint(constraint);
     return set.has(s) && set.has(t);
   });
+
+  const validSideConstraints = sideConstraints.filter((constraint) => {
+    // Format: "c>b,d" means point c is on the left of line b->d
+    const parts = constraint.split(">");
+    if (parts.length !== 2) return false;
+    const point = parts[0].trim();
+    const lineParts = parts[1].split(",");
+    if (lineParts.length !== 2) return false;
+    const [lineStart, lineEnd] = lineParts.map((p) => p.trim());
+    return set.has(point) && set.has(lineStart) && set.has(lineEnd);
+  });
+
   const validLinks = links
     .map((link) =>
       link
@@ -318,11 +343,15 @@ function preprocessSpec({nodes = [], links = [], constraints = [], ...rest}) {
         .join(",")
     )
     .filter((link) => link.length > 0);
+
   return {
     ...rest,
     nodes,
     links: validLinks,
-    constraints: inferConstraints(validConstraints),
+    constraints: {
+      position: inferConstraints(validPositionConstraints),
+      side: validSideConstraints,
+    },
   };
 }
 
@@ -343,7 +372,7 @@ const curveOptions = [
 function App() {
   const [seed, setSeed] = useState(0);
   const [seedInput, setSeedInput] = useState("0");
-  const [selectedChar, setSelectedChar] = useState(data[0].char);
+  const [selectedChar, setSelectedChar] = useState(data[1].char);
   const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
   const [renderer, setRenderer] = useState("SVG");
