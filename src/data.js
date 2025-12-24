@@ -1,6 +1,6 @@
 export const data = [
   {
-    char: "A",
+    name: "A",
     nodes: ["a", "b", "c", "d", "e"],
     links: ["d,e,a,b,c", "e,b"],
     constraints: {
@@ -9,7 +9,7 @@ export const data = [
     },
   },
   {
-    char: "B",
+    name: "B",
     nodes: ["a", "b", "c", "d", "e", "f", "g"],
     links: ["a,b,c,d,e,f,g,d,a"],
     constraints: {
@@ -18,7 +18,7 @@ export const data = [
     },
   },
   {
-    char: "C",
+    name: "C",
     nodes: ["a", "b", "c", "d"],
     links: ["a,b,c,d"],
     constraints: {
@@ -27,7 +27,7 @@ export const data = [
     },
   },
   {
-    char: "D",
+    name: "D",
     nodes: ["a", "b", "c", "d", "e"],
     links: ["a,b,c,d,e,a"],
     constraints: {

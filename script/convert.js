@@ -76,7 +76,7 @@ function gtype(spec) {
       constraints.push(h, v);
     }
   }
-  return {char: name, links, nodes, constraints: simplify(constraints)};
+  return {name: name, links, nodes, constraints: simplify(constraints)};
 }
 
 export function convert(linefont) {

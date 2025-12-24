@@ -12,7 +12,7 @@ function drawWebGL(node, {random, spec, count, animate = true} = {}) {
     const scaleX = d3.scaleLinear(d3.extent(X), [0, 1]);
     const scaleY = d3.scaleLinear(d3.extent(Y), [0, 1]);
     return {
-      name: spec.char,
+      name: spec.name,
       paths: spec.links.map((path) =>
         path.split(",").map((id) => {
           const [x, y] = pointById.get(id);

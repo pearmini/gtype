@@ -26,12 +26,12 @@ const curveOptions = [
 function App() {
   const [seed, setSeed] = useState(0);
   const [seedInput, setSeedInput] = useState("0");
-  const [selectedChar, setSelectedChar] = useState(data[3].char);
+  const [selectedChar, setSelectedChar] = useState(data[3].name);
   const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
   const [renderer, setRenderer] = useState("SVG");
   const [animate, setAnimate] = useState(true);
-  const initialItem = data.find((d) => d.char === selectedChar);
+  const initialItem = data.find((d) => d.name === selectedChar);
 
   const initialCode = JSON.stringify(initialItem, null, 2);
 
@@ -82,7 +82,7 @@ function App() {
   }, [currentSpec, selectedCurve, showDebug, renderer, seed, animate]);
 
   useEffect(() => {
-    const item = data.find((d) => d.char === selectedChar);
+    const item = data.find((d) => d.name === selectedChar);
     if (item) {
       const newCode = JSON.stringify(item, null, 2);
       setCode(newCode);
@@ -140,8 +140,8 @@ function App() {
             className="px-2.5 py-1.5 bg-[#1a1a1a] text-[#e5e5e5] border border-[#333] rounded text-sm cursor-pointer"
           >
             {data.map((d) => (
-              <option key={d.char} value={d.char}>
-                {d.char}
+              <option key={d.name} value={d.name}>
+                {d.name}
               </option>
             ))}
           </select>
