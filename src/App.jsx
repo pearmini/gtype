@@ -150,7 +150,14 @@ function drawSVG(node, {debug = false, random, spec, curveType = d3.curveLinear,
 
   const entries = Array.from(pointById.entries());
 
-  svg.selectAll("path").data(paths).join("path").attr("d", line).attr("stroke", "#e5e5e5").attr("stroke-width", 1.5);
+  svg
+    .selectAll("path")
+    .data(paths)
+    .join("path")
+    .attr("d", line)
+    .attr("stroke", "#e5e5e5")
+    .attr("fill", "none")
+    .attr("stroke-width", 1.5);
 
   if (showDebug) {
     svg
