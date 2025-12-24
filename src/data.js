@@ -14,7 +14,7 @@ export const data = [
     links: ["a,b,c,d,e,f,g,d,a"],
     constraints: {
       position: ["avb", "bvc", "d>c", "cvd", "dve", "evf", "fvg", "d>g", "a>c", "g>e", "c>b", "e>f"],
-      side: [],
+      side: ["c>b,d", "e>d,f"],
     },
   },
   {
@@ -23,7 +23,7 @@ export const data = [
     links: ["a,b,c,d"],
     constraints: {
       position: ["b>a", "bvc", "c>d", "avd", "c>a", "b>d"],
-      side: [],
+      side: ["c>d,b", "d>a,c", "a>b,d", "b>c,a"],
     },
   },
   {
@@ -32,7 +32,7 @@ export const data = [
     links: ["a,b,c,d,e,a"],
     constraints: {
       position: ["a>b", "b>c", "bvc", "cvd", "d>c", "e>d", "e>b", "a>d", "avb", "dve"],
-      side: [],
+      side: ["b>a,c", "d>c,e"],
     },
   },
 ];
