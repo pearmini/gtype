@@ -204,3 +204,4 @@ export const V = (() => {
 export function setUniform(gl, type, name, a, b, c) {
   return gl["uniform" + type](gl.getUniformLocation(gl.program, name), a, b, c);
 }
+
