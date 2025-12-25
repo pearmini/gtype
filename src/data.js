@@ -34,4 +34,13 @@ export const data = [
       side: ["b>a,c", "d>c,e"],
     },
   },
+  {
+    name: "E",
+    links: ["a,b,c,d,f", "c,e"],
+    nodes: ["a", "b", "c", "d", "e", "f"],
+    constraints: {
+      position: ["bvc", "cvd", "ave", "evf", "c>b", "c>d", "e>a", "e>f", "d>e", "b>e", "bve", "evd"],
+      side: ["b>c,a", "d>f,c"],
+    },
+  },
 ];
