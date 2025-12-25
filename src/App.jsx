@@ -26,7 +26,7 @@ const curveOptions = [
 function App() {
   const [seed, setSeed] = useState(0);
   const [seedInput, setSeedInput] = useState("0");
-  const [selectedChar, setSelectedChar] = useState(data[data.length - 1].name);
+  const [selectedChar, setSelectedChar] = useState(data[0].name);
   const [selectedCurve, setSelectedCurve] = useState("curveCardinal");
   const [showDebug, setShowDebug] = useState(false);
   const [renderer, setRenderer] = useState("SVG");
