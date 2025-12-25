@@ -38,7 +38,6 @@ function randomPointInPolygon(polygon, random, maxAttempts = 1000) {
     const x = random(minX, maxX);
     const y = random(minY, maxY);
     if (pointInPolygon([x, y], polygon)) {
-      console.log(polygon);
       return [x, y];
     }
   }
